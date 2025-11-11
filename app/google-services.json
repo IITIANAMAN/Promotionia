@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "378234849412",
+    "project_id": "promotioniaapp",
+    "storage_bucket": "promotioniaapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:378234849412:android:99ee0735ed256977559ad1",
+        "android_client_info": {
+          "package_name": "am.com.amanmeena.promotionia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpdmS5Elo2_f3kpDeOBrAYxKF2j-pHhE4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
