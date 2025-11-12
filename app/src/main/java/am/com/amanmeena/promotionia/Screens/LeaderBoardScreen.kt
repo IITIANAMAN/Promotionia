@@ -1,5 +1,6 @@
 package com.amanmeena.promotionia.Screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +25,7 @@ data class LeaderboardEntry(
     val coins: Int
 )
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LeaderboardScreen(modifier: Modifier,navController: NavController) {
@@ -39,27 +41,11 @@ fun LeaderboardScreen(modifier: Modifier,navController: NavController) {
         LeaderboardEntry("Sneha", 580),
         LeaderboardEntry("Rahul", 540)
     )
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Leaderboard") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Column(
+    Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8F9FB))
-                .padding(padding)
+
                 .padding(16.dp)
         ) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -69,7 +55,7 @@ fun LeaderboardScreen(modifier: Modifier,navController: NavController) {
             }
         }
     }
-}
+
 
 @Composable
 fun LeaderboardRow(rank: Int, name: String, coins: Int) {

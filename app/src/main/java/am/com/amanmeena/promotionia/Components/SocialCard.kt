@@ -20,6 +20,8 @@ fun SocialCard(platform: String,navController: NavController) {
             .width(100.dp)
             .height(80.dp).clickable{
                 navController.navigate("leader")
+            }.clickable{
+                navController.navigate("acc/$platform")
             },
         shape = RoundedCornerShape(12.dp)
     ) {

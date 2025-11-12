@@ -1,6 +1,8 @@
 package am.com.amanmeena.promotionia
 
 
+import am.com.amanmeena.promotionia.Screens.LoginScreen
+import am.com.amanmeena.promotionia.Screens.SignUpScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,6 +26,8 @@ class MainActivity : ComponentActivity() {
             PromotioniaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MyAppNavigation(modifier = Modifier.padding(innerPadding))
+                    //LoginScreen(modifier = Modifier.padding(innerPadding))
+                    //SignUpScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
