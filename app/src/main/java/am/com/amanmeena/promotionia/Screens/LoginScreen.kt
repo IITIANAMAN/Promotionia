@@ -1,9 +1,8 @@
 package am.com.amanmeena.promotionia.Screens
 
-import androidx.compose.foundation.background
+import am.com.amanmeena.promotionia.AuthClient
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -12,165 +11,175 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    navController: NavController,
-    onLoginClick: (String, String) -> Unit = { _, _ -> },
-    onRegisterClick: () -> Unit = {
-        navController.navigate("signup")
-    },
-    onForgotPasswordClick: () -> Unit = {}
+    navController: NavController
 ) {
+    val authClient = remember { AuthClient() }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
-    // Background gradient
+    val scope = rememberCoroutineScope()
+
     Box(
-        modifier = modifier
-            .fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
                 .wrapContentHeight(),
-            elevation = CardDefaults.cardElevation(6.dp),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(18.dp),
+            elevation = CardDefaults.cardElevation(10.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
+
             Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
+                modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(10.dp))
 
-                // Title / Logo section
-                Box(
-                    modifier = Modifier
-                        .size(70.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF4A90E2)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("P", fontSize = 32.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "Welcome to Promotionia",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = Color(0xFF333333)
+                    text = "Promotionia",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+
+                Spacer(modifier = Modifier.height(4.dp))
+
                 Text(
-                    "Login to continue your journey",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "Welcome Back!",
+                    fontSize = 16.sp,
                     color = Color.Gray
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Email Field
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Email,
+                            contentDescription = "Email"
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Password Field
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("Password") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password") },
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        val icon = if (passwordVisible) "🙈" else "👁️"
-                        Text(
-                            icon,
-                            modifier = Modifier
-                                .clickable { passwordVisible = !passwordVisible }
-                                .padding(horizontal = 8.dp),
-                            fontSize = 18.sp
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Lock,
+                            contentDescription = "Password"
                         )
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        Text(
+                            if (passwordVisible) "Hide" else "Show",
+                            color = Color.Gray,
+                            modifier = Modifier.clickable {
+                                passwordVisible = !passwordVisible
+                            }
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Forgot Password
                 Text(
                     text = "Forgot Password?",
+                    color = Color(0xFF007AFF),
                     modifier = Modifier
                         .align(Alignment.End)
-                        .clickable { onForgotPasswordClick() },
-                    style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF4A90E2))
+                        .clickable { }
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Login Button
+                if (errorMessage.isNotEmpty()) {
+                    Text(errorMessage, color = Color.Red, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 Button(
-                    onClick = { navController.navigate("home") },
+                    onClick = {
+                        if (email.isEmpty() || password.isEmpty()) {
+                            errorMessage = "Please fill all fields"
+                            return@Button
+                        }
+
+                        scope.launch {
+                            isLoading = true
+                            errorMessage = ""
+
+                            val result = authClient.login(email, password)
+
+                            isLoading = false
+
+                            if (result.isSuccess) {
+                                navController.navigate("home") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                errorMessage = result.exceptionOrNull()?.message ?: "Login failed"
+                            }
+                        }
+                    },
+                    enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,       // background color
-                        contentColor = Color.White          // text/icon color
+                        containerColor = Color.Black,
+                        contentColor = Color.White
                     )
                 ) {
-                    Text("Login", fontSize = 18.sp)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Divider with OR
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Divider(modifier = Modifier.weight(1f))
-                    Text("  OR  ", style = TextStyle(color = Color.Gray))
-                    Divider(modifier = Modifier.weight(1f))
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Register Section
-                TextButton(onClick = onRegisterClick) {
-                    Text(
-                        text = "New to app? Register here",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color(0xFF4A90E2),
-                            fontWeight = FontWeight.Medium
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(20.dp)
                         )
-                    )
+                    } else {
+                        Text("Login", fontSize = 18.sp)
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Text(
+                    text = "New to app? Register here",
+                    color = Color(0xFF007AFF),
+                    modifier = Modifier.clickable {
+                        navController.navigate("signup")
+                    }
+                )
 
                 Spacer(modifier = Modifier.height(10.dp))
             }

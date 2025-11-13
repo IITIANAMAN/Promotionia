@@ -42,9 +42,13 @@ android {
 
 dependencies {
     implementation(libs.firebase.auth)
+    implementation(libs.play.services.auth)
+    implementation(libs.firebase.firestore)
     val nav_version = "2.9.6"
 
-    // Jetpack Compose integration
+
+    val lifecycle_version = "2.9.4"
+    implementation("androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version")
     implementation("androidx.navigation:navigation-compose:$nav_version")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -1,5 +1,7 @@
 package com.amanmeena.promotionia.Screens
 
+import am.com.amanmeena.promotionia.AuthClient
+import am.com.amanmeena.promotionia.utils.formatMemberSince
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -9,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.toString
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,7 +21,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ProfileSection() {
+fun ProfileSection(user: Map<String, Any>?) {
+    val name = user?.get("name") as? String ?: "User"
+    val state = user?.get("state") as? String ?: ""
+    val totalCoin = user?.get("totalCoin") as? Long ?: 0L
+    val createdAt = user?.get("createdAt") as? Long ?: 0L
+    val memberSince = if (createdAt != 0L) formatMemberSince(createdAt) else "N/A"
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FB)),
@@ -54,7 +63,7 @@ fun ProfileSection() {
                 ) {
 
                     Text(
-                        "Aman",
+                        name,
                         style = MaterialTheme.typography.titleMedium,
                         fontSize = 18.sp
                     )
@@ -70,7 +79,7 @@ fun ProfileSection() {
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = "120",
+                            text = totalCoin.toString(),
                             color = Color(0xFF5C4D00),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
@@ -84,9 +93,10 @@ fun ProfileSection() {
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Uttar Pradesh • 9001010101", color = Color.Gray, fontSize = 14.sp)
+                Text("Member since ${memberSince}", color = Color.Gray, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(state, color = Color.Gray, fontSize = 14.sp)
             }
         }
     }

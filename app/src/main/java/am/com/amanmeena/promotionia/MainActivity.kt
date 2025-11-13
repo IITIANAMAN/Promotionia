@@ -1,8 +1,7 @@
 package am.com.amanmeena.promotionia
 
 
-import am.com.amanmeena.promotionia.Screens.LoginScreen
-import am.com.amanmeena.promotionia.Screens.SignUpScreen
+import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,22 +9,28 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import am.com.amanmeena.promotionia.ui.theme.PromotioniaTheme
-import com.amanmeena.promotionia.Screens.HomeScreen
-import com.amanmeena.promotionia.Screens.LeaderboardScreen
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val viewModel = viewModel<MainViewModel>(
+                factory = object : ViewModelProvider.Factory{
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return MainViewModel() as T
+                    }
+                }
+            )
             PromotioniaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MyAppNavigation(modifier = Modifier.padding(innerPadding))
+                    MyAppNavigation(modifier = Modifier.padding(innerPadding),viewModel)
                     //LoginScreen(modifier = Modifier.padding(innerPadding))
                     //SignUpScreen(modifier = Modifier.padding(innerPadding))
                 }

@@ -1,7 +1,7 @@
 package com.amanmeena.promotionia.Screens
 
+import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +13,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,13 +21,17 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun HomeScreen(modifier: Modifier = Modifier, navController: NavHostController, viewModel: MainViewModel) {
+    LaunchedEffect(Unit) {
+        viewModel.loadCurrentUser()
+    }
+    val user = viewModel.userData.value
     Surface(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        color = Color(0xFFF8F9FB) // light background like website
+        color = Color.White // light background like website
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -35,7 +40,7 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavHostController) 
 
 
             BorderedSection {
-                ProfileSection()
+                ProfileSection(user)
             }
 
             BorderedSection {
@@ -59,6 +64,7 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavHostController) 
                 ) {
                 Text("Just use me")
             }
+
         }
     }
 }

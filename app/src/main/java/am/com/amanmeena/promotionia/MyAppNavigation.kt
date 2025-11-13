@@ -2,6 +2,7 @@ package am.com.amanmeena.promotionia
 
 import am.com.amanmeena.promotionia.Screens.LoginScreen
 import am.com.amanmeena.promotionia.Screens.SignUpScreen
+import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -22,14 +23,14 @@ import com.amanmeena.promotionia.Screens.HomeScreen
 import com.amanmeena.promotionia.Screens.LeaderboardScreen
 
 @Composable
-fun MyAppNavigation(modifier: Modifier = Modifier) {
+fun MyAppNavigation(modifier: Modifier = Modifier, viewModel: MainViewModel) {
     val navController = rememberNavController()
 
     Scaffold(
         topBar = { PromotioniaTopAppBar(navController) }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            AppNavGraph(navController = navController, modifier = modifier)
+            AppNavGraph(navController = navController, modifier = modifier,viewModel)
         }
     }
 }
@@ -65,11 +66,12 @@ fun PromotioniaTopAppBar(navController: NavHostController) {
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel
 ) {
     NavHost(navController = navController, startDestination = "login") {
         composable("home") {
-            HomeScreen(modifier = modifier, navController = navController)
+            HomeScreen(modifier = modifier, navController = navController, viewModel)
         }
         composable("leader") {
             LeaderboardScreen(modifier = modifier, navController = navController)
@@ -84,7 +86,7 @@ fun AppNavGraph(
             LoginScreen(modifier,navController)
         }
         composable("signup") {
-            SignUpScreen(modifier)
+            SignUpScreen(modifier,navController)
         }
     }
 }
