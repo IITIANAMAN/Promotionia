@@ -142,9 +142,20 @@ fun LoginScreen(
                             isLoading = false
 
                             if (result.isSuccess) {
-                                navController.navigate("home") {
-                                    popUpTo("login") { inclusive = true }
+
+                                val uid = authClient.currentUser()?.uid
+                                val ADMIN_UID = "odYhlrvS64fTEZPw92w2DwjV1403"
+
+                                if (uid == ADMIN_UID) {
+                                    navController.navigate("admin") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                } else {
+                                    navController.navigate("home") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
                                 }
+
                             } else {
                                 errorMessage = result.exceptionOrNull()?.message ?: "Login failed"
                             }

@@ -1,5 +1,6 @@
 package com.amanmeena.promotionia.Screens
 
+import am.com.amanmeena.promotionia.AuthClient
 import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -62,6 +63,14 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavHostController, 
                 navController.navigate("leader")
             },
                 ) {
+                Text("Just use me")
+            }
+            val auth = AuthClient()
+            Button(onClick = {
+                auth.logout()
+                navController.navigate("login")
+            },
+            ) {
                 Text("Just use me")
             }
 

@@ -2,6 +2,7 @@ package com.amanmeena.promotionia.Screens
 
 import am.com.amanmeena.promotionia.AuthClient
 import am.com.amanmeena.promotionia.utils.formatMemberSince
+import am.com.amanmeena.promotionia.utils.getRelativeTime
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -26,7 +27,7 @@ fun ProfileSection(user: Map<String, Any>?) {
     val state = user?.get("state") as? String ?: ""
     val totalCoin = user?.get("totalCoin") as? Long ?: 0L
     val createdAt = user?.get("createdAt") as? Long ?: 0L
-    val memberSince = if (createdAt != 0L) formatMemberSince(createdAt) else "N/A"
+    val memberSince = if (createdAt != 0L) getRelativeTime(createdAt) else "Joined recently"
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FB)),
@@ -94,7 +95,7 @@ fun ProfileSection(user: Map<String, Any>?) {
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Member since ${memberSince}", color = Color.Gray, fontSize = 14.sp)
+                Text(memberSince, color = Color.Gray, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(state, color = Color.Gray, fontSize = 14.sp)
             }

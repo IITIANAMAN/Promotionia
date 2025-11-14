@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation(libs.firebase.firestore)
     val nav_version = "2.9.6"
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
 
 
     val lifecycle_version = "2.9.4"
