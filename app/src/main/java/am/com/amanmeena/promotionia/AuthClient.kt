@@ -8,10 +8,6 @@ class AuthClient {
 
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
-
-    // ---------------------------
-    // SIGN UP (Email + Password)
-    // ---------------------------
     suspend fun signUp(
         name: String,
         email: String,

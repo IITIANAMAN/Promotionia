@@ -31,8 +31,7 @@ class MainActivity : ComponentActivity() {
             PromotioniaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MyAppNavigation(modifier = Modifier.padding(innerPadding),viewModel)
-                    //LoginScreen(modifier = Modifier.padding(innerPadding))
-                    //SignUpScreen(modifier = Modifier.padding(innerPadding))
+
                 }
             }
         }

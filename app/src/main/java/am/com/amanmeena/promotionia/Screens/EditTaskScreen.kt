@@ -32,13 +32,24 @@ fun EditTaskScreen(
     var platform by remember { mutableStateOf(task?.platform ?: "") }
     var isActive by remember { mutableStateOf(task?.isActive ?: true) }
     var description by remember { mutableStateOf(task?.description ?: "") }
+    val platforms = listOf("Instagram", "Facebook", "X")
+    var expanded by remember { mutableStateOf(false) }
 
     Scaffold(topBar = { TopAppBar(title = { Text("Edit Task") }) }) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = link, onValueChange = { link = it }, label = { Text("Link") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = reward, onValueChange = { reward = it.filter { ch -> ch.isDigit() } }, label = { Text("Reward (coins)") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
-            OutlinedTextField(value = platform, onValueChange = { platform = it }, label = { Text("Platform") }, modifier = Modifier.fillMaxWidth())
+            //OutlinedTextField(value = platform, onValueChange = { platform = it }, label = { Text("Platform") }, modifier = Modifier.fillMaxWidth())
+
+            ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+                OutlinedTextField(value = platform, onValueChange = {}, readOnly = true, label = { Text("Platform") }, modifier = Modifier.menuAnchor().fillMaxWidth())
+                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    platforms.forEach {
+                        DropdownMenuItem(text = { Text(it) }, onClick = { platform = it; expanded = false })
+                    }
+                }
+            }
             OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth())
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

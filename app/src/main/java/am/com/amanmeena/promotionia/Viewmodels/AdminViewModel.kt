@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.common.util.CollectionUtils.mapOf
+import kotlin.collections.mapOf
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -30,7 +31,7 @@ class AdminViewModel(
     // Replace with your admin UID (string)
     val ADMIN_UID = "odYhlrvS64fTEZPw92w2DwjV1403"
     // ------------------------------------------------------
-
+    val pendingWithdrawals = mutableStateOf(0)
     // Tasks
     val tasks = mutableStateListOf<TaskItem>()
     val isLoading = mutableStateOf(false)
@@ -51,9 +52,17 @@ class AdminViewModel(
         listenTasksRealtime()
         listenUsersRealtime()
         loadStatsOnce()
+        listenWithdrawalRequests()
     }
 
     // Tasks realtime
+    fun listenWithdrawalRequests() {
+        firestore.collection("withdrawals")
+            .whereEqualTo("status", "pending")
+            .addSnapshotListener { snap, _ ->
+                pendingWithdrawals.value = snap?.size() ?: 0
+            }
+    }
     fun listenTasksRealtime() {
         tasksListener?.remove()
         tasks.clear()
@@ -180,7 +189,7 @@ class AdminViewModel(
                     "platform" to platform,
                     "reward" to reward,
                     "isActive" to true,
-                    "description" to description ?: ""
+                    ("description" to description)
                 )
                 firestore.collection("tasks").add(data).await()
                 onDone(true, null)

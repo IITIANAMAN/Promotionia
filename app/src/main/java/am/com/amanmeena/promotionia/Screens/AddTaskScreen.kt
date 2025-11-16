@@ -2,6 +2,7 @@ package am.com.amanmeena.promotionia.Screens
 
 
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
+import com.google.firebase.auth.FirebaseAuth
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTaskScreen(navController: NavController, viewModel: AdminViewModel) {
@@ -23,7 +26,9 @@ fun AddTaskScreen(navController: NavController, viewModel: AdminViewModel) {
     var expanded by remember { mutableStateOf(false) }
     var description by remember { mutableStateOf("") }
 
+
     val platforms = listOf("Instagram", "Facebook", "X")
+
 
     Scaffold(topBar = { TopAppBar(title = { Text("Add Task") }) }) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -48,7 +53,7 @@ fun AddTaskScreen(navController: NavController, viewModel: AdminViewModel) {
             }
             OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description (optional)") }, modifier = Modifier.fillMaxWidth(), maxLines = 4)
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Button(onClick = {
                 if (title.isBlank() || link.isBlank() || platform.isBlank() || reward.isBlank()) return@Button
@@ -56,9 +61,11 @@ fun AddTaskScreen(navController: NavController, viewModel: AdminViewModel) {
                     if (ok) {
                         navController.popBackStack()
                     } else {
-                        // handle error - show snackbar in your app
+                        Log.e("ADD_TASK_ERROR", err ?: "Unknown error")
                     }
                 }
+
+
             }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Default.Check, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))

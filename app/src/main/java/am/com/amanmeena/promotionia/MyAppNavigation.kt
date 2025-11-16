@@ -49,9 +49,6 @@ fun PromotioniaTopAppBar(navController: NavHostController) {
                         "home" -> "Promotionia"
                         "leader" -> "Leaderboard"
                         "fb" -> "Facebook Accounts"
-                        "admin" -> "Admin Dashboard"
-                        "admin_tasks" -> "Manage Tasks"
-                        "admin_users" -> "Users"
                         else -> "Promotionia"
                     },
                     style = MaterialTheme.typography.titleLarge
@@ -59,7 +56,7 @@ fun PromotioniaTopAppBar(navController: NavHostController) {
             }
         },
         navigationIcon = {
-            if (currentRoute != "home" && currentRoute != "login" && currentRoute != "signup") {
+            if (currentRoute != "home" && currentRoute != "login" && currentRoute != "signup" && currentRoute != "admin") {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                 }
@@ -88,7 +85,7 @@ fun AppNavGraph(
 
         // ADMIN / dashboard routes - use shared adminVm
         composable("admin") {
-            AdminDashboardScreen(navController = navController, viewModel = adminVm)
+            AdminDashboardScreen(modifier,navController = navController, viewModel = adminVm)
         }
 
         composable("admin_tasks") {

@@ -1,5 +1,6 @@
 package am.com.amanmeena.promotionia.Screens
 
+import am.com.amanmeena.promotionia.AuthClient
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,18 +14,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.modifier.ModifierLocalReadScope
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(
+    modifier: Modifier,
     navController: NavController,
-    viewModel: AdminViewModel
+    viewModel: AdminViewModel,
+
 ) {
     LaunchedEffect(Unit) { viewModel.loadStatsOnce() }
-
+    val auth = AuthClient()
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Admin Dashboard") },
+                actions = {
+                    NotificationBell(
+                        count = viewModel.pendingWithdrawals.value,
+                        onClick = {
+                            navController.navigate("withdraw_requests")
+                        }
+                    )
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("admin_tasks/add") },
@@ -34,14 +51,15 @@ fun AdminDashboardScreen(
                 Icon(Icons.Default.Add, contentDescription = "Add Task")
             }
         }
+
     ) { padding ->
 
         Column(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
                 .background(Color(0xFFF2F2F2))
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(padding),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
@@ -72,7 +90,7 @@ fun AdminDashboardScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // ---- MANAGE BUTTONS ----
+
             AdminActionButton(
                 label = "Manage Tasks",
                 icon = Icons.Default.List,
@@ -84,7 +102,17 @@ fun AdminDashboardScreen(
                 icon = Icons.Default.People,
                 color = Color.DarkGray
             ) { navController.navigate("admin_users") }
+            AdminActionButton(
+                label = "Logout",
+                icon = Icons.Default.People,
+                color = Color.DarkGray
+            ) {
+                auth.logout()
+            }
+            // Configure according to number of click in task
+
         }
+
     }
 }
 
@@ -142,5 +170,41 @@ fun AdminActionButton(
         Icon(icon, contentDescription = null)
         Spacer(Modifier.width(8.dp))
         Text(label)
+    }
+}
+@Composable
+fun NotificationBell(
+    count: Int,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .padding(4.dp)
+    ) {
+        IconButton(onClick = onClick) {
+            Icon(
+                imageVector = Icons.Default.Notifications,
+                contentDescription = "Notifications",
+                tint = Color.Black,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+
+        if (count > 0) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(18.dp)
+                    .background(Color.Red, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (count > 9) "9+" else count.toString(),
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        }
     }
 }
