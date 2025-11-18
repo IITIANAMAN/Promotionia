@@ -1,5 +1,10 @@
 package am.com.amanmeena.promotionia
 
+import am.com.amanmeena.promotionia.AdminPanel.AddTaskScreen
+import am.com.amanmeena.promotionia.AdminPanel.AdminDashboardScreen
+import am.com.amanmeena.promotionia.AdminPanel.AdminTasksScreen
+import am.com.amanmeena.promotionia.AdminPanel.AdminUsersScreen
+import am.com.amanmeena.promotionia.AdminPanel.EditTaskScreen
 import am.com.amanmeena.promotionia.Screens.*
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
 import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
@@ -49,6 +54,8 @@ fun PromotioniaTopAppBar(navController: NavHostController) {
                         "home" -> "Promotionia"
                         "leader" -> "Leaderboard"
                         "fb" -> "Facebook Accounts"
+                        "admin_users"->"Manage User"
+                        "admin_tasks/add" -> "Add task"
                         else -> "Promotionia"
                     },
                     style = MaterialTheme.typography.titleLarge
@@ -85,7 +92,7 @@ fun AppNavGraph(
 
         // ADMIN / dashboard routes - use shared adminVm
         composable("admin") {
-            AdminDashboardScreen(modifier,navController = navController, viewModel = adminVm)
+            AdminDashboardScreen(modifier, navController = navController, viewModel = adminVm)
         }
 
         composable("admin_tasks") {

@@ -1,4 +1,4 @@
-package am.com.amanmeena.promotionia.Screens
+package am.com.amanmeena.promotionia.AdminPanel
 
 import am.com.amanmeena.promotionia.AuthClient
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.modifier.ModifierLocalReadScope
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 

@@ -1,4 +1,4 @@
-package am.com.amanmeena.promotionia.Screens
+package am.com.amanmeena.promotionia.AdminPanel
 
 
 
@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,6 +31,7 @@ fun EditTaskScreen(
     var platform by remember { mutableStateOf(task?.platform ?: "") }
     var isActive by remember { mutableStateOf(task?.isActive ?: true) }
     var description by remember { mutableStateOf(task?.description ?: "") }
+    var click by remember { mutableStateOf(task?.click?.toString()?:"0") }
     val platforms = listOf("Instagram", "Facebook", "X")
     var expanded by remember { mutableStateOf(false) }
 
@@ -50,6 +50,7 @@ fun EditTaskScreen(
                     }
                 }
             }
+            OutlinedTextField(value = click, onValueChange = { click = it.filter { ch -> ch.isDigit() } }, label = { Text("Number of clicks") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth())
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -66,7 +67,8 @@ fun EditTaskScreen(
                     "platform" to platform,
                     "reward" to (if (reward.isBlank()) 0 else reward.toInt()),
                     "isActive" to isActive,
-                    "description" to description
+                    "description" to description,
+                    "click" to click
                 )
                 viewModel.updateTask(taskId, updates) { ok, err ->
                     if (ok) navController.popBackStack()

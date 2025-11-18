@@ -19,7 +19,6 @@ fun StartScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         if (user != null) {
-            // Already logged in — check if admin or normal user
             if (user.uid == "odYhlrvS64fTEZPw92w2DwjV1403") {
                 navController.navigate("admin") {
                     popUpTo("start") { inclusive = true }

@@ -1,7 +1,8 @@
-package am.com.amanmeena.promotionia.Screens
+package am.com.amanmeena.promotionia.AdminPanel
 
 
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,8 +15,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
-import com.google.firebase.auth.FirebaseAuth
-
+@SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTaskScreen(navController: NavController, viewModel: AdminViewModel) {
@@ -25,13 +25,14 @@ fun AddTaskScreen(navController: NavController, viewModel: AdminViewModel) {
     var platform by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var description by remember { mutableStateOf("") }
+    var click by remember { mutableStateOf("") }
 
 
     val platforms = listOf("Instagram", "Facebook", "X")
 
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Add Task") }) }) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedTextField(
                 title,
                 { title = it },
@@ -44,20 +45,21 @@ fun AddTaskScreen(navController: NavController, viewModel: AdminViewModel) {
                 label = { Text("Link") })
             OutlinedTextField(value = reward, onValueChange = { reward = it.filter { ch -> ch.isDigit() } }, label = { Text("Reward (coins)") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
             ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
-                OutlinedTextField(value = platform, onValueChange = {}, readOnly = true, label = { Text("Platform") }, modifier = Modifier.menuAnchor().fillMaxWidth())
-                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            OutlinedTextField(value = platform, onValueChange = {}, readOnly = true, label = { Text("Platform") }, modifier = Modifier.menuAnchor().fillMaxWidth())
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     platforms.forEach {
                         DropdownMenuItem(text = { Text(it) }, onClick = { platform = it; expanded = false })
                     }
                 }
             }
+            OutlinedTextField(value = click, onValueChange = { click = it.filter { ch -> ch.isDigit() } }, label = { Text("Number of clicks") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description (optional)") }, modifier = Modifier.fillMaxWidth(), maxLines = 4)
 
             Spacer(modifier = Modifier.height(10.dp))
 
             Button(onClick = {
                 if (title.isBlank() || link.isBlank() || platform.isBlank() || reward.isBlank()) return@Button
-                viewModel.addTask(title = title, link = link, platform = platform, reward = reward.toInt(), description = description) { ok, err ->
+                viewModel.addTask(title = title, link = link, platform = platform, reward = reward.toInt(), description = description,click=click.toInt()) { ok, err ->
                     if (ok) {
                         navController.popBackStack()
                     } else {
@@ -73,4 +75,3 @@ fun AddTaskScreen(navController: NavController, viewModel: AdminViewModel) {
             }
         }
     }
-}

@@ -1,4 +1,4 @@
-package am.com.amanmeena.promotionia.Screens
+package am.com.amanmeena.promotionia.AdminPanel
 
 
 

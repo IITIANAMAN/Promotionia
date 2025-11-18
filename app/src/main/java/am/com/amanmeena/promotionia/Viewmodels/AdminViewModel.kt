@@ -19,7 +19,8 @@ data class TaskItem(
     val platform: String = "",
     val reward: Int = 0,
     val isActive: Boolean = true,
-    val description: String? = null
+    val description: String? = null,
+    val click: Int = 0
 )
 
 class AdminViewModel(
@@ -172,6 +173,7 @@ class AdminViewModel(
         platform: String,
         reward: Int,
         description: String?,
+        click: Int,
         onDone: (Boolean, String?) -> Unit
     ) {
         val uid = auth.currentUser?.uid
