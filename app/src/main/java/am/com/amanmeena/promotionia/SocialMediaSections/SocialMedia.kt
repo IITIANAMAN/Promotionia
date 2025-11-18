@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FacebookAccountsScreen(
+fun SocialMedia(
     modifier: Modifier,
     an: String? ="Facebook"
 ) {

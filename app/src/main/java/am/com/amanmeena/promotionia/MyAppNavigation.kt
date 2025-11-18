@@ -21,7 +21,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.amanmeena.promotionia.Screens.FacebookAccountsScreen
+import com.amanmeena.promotionia.Screens.SocialMedia
 import com.amanmeena.promotionia.Screens.HomeScreen
 import com.amanmeena.promotionia.Screens.LeaderboardScreen
 
@@ -87,7 +87,7 @@ fun AppNavGraph(
         composable("leader") { LeaderboardScreen(modifier = modifier, navController = navController) }
         composable("acc/{an}", arguments = listOf(navArgument("an") { type = NavType.StringType })) {
             val an = it.arguments?.getString("an")
-            FacebookAccountsScreen(modifier = modifier, an)
+            SocialMedia(modifier = modifier, an)
         }
 
         // ADMIN / dashboard routes - use shared adminVm

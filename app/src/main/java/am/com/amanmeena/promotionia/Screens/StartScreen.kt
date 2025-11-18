@@ -1,5 +1,6 @@
 package am.com.amanmeena.promotionia.Screens
 
+import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -19,7 +20,7 @@ fun StartScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         if (user != null) {
-            if (user.uid == "odYhlrvS64fTEZPw92w2DwjV1403") {
+            if (user.uid == ADMIN_UID) {
                 navController.navigate("admin") {
                     popUpTo("start") { inclusive = true }
                 }

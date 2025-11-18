@@ -14,10 +14,8 @@ import com.amanmeena.promotionia.ui.components.InfoCard
 @Composable
 fun StatsSection() {
     val statsList = listOf(
-        Triple("Current Rank", "-", "All India Rank"),
         Triple("Tasks Completed", "8", "Completed successfully"),
         Triple("Pending Tasks", "2", "Waiting to be done"),
-        Triple("Daily Streak", "5", "Consecutive days")
     )
 
     Column(modifier = Modifier.fillMaxWidth()) {

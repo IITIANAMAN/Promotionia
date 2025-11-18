@@ -53,18 +53,13 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavHostController, 
             }
 
             BorderedSection {
-                LeaderboardSection()
+                LeaderboardSection(navController)
             }
 
             BorderedSection {
                 FollowSection()
             }
-            Button(onClick = {
-                navController.navigate("leader")
-            },
-                ) {
-                Text("Just use me")
-            }
+
             val auth = AuthClient()
             Button(onClick = {
                 auth.logout()

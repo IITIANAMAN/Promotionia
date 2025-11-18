@@ -1,6 +1,7 @@
 package am.com.amanmeena.promotionia.Screens
 
 import am.com.amanmeena.promotionia.AuthClient
+import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -144,7 +145,7 @@ fun LoginScreen(
                             if (result.isSuccess) {
 
                                 val uid = authClient.currentUser()?.uid
-                                val ADMIN_UID = "odYhlrvS64fTEZPw92w2DwjV1403"
+
 
                                 if (uid == ADMIN_UID) {
                                     navController.navigate("admin") {
