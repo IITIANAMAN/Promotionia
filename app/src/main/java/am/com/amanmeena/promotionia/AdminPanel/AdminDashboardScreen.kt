@@ -3,6 +3,7 @@ package am.com.amanmeena.promotionia.AdminPanel
 import am.com.amanmeena.promotionia.AuthClient
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,19 +29,6 @@ fun AdminDashboardScreen(
     LaunchedEffect(Unit) { viewModel.loadStatsOnce() }
     val auth = AuthClient()
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Admin Dashboard") },
-                actions = {
-                    NotificationBell(
-                        count = viewModel.pendingWithdrawals.value,
-                        onClick = {
-                            navController.navigate("withdraw_requests")
-                        }
-                    )
-                }
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("admin_tasks/add") },
@@ -71,15 +59,20 @@ fun AdminDashboardScreen(
                     title = "Users",
                     value = viewModel.totalUsers.value.toString(),
                     icon = Icons.Default.People,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).clickable{
+                        navController.navigate("admin_users")
+                    }
                 )
 
                 SummaryCard(
                     title = "Tasks",
                     value = viewModel.totalTasks.value.toString(),
                     icon = Icons.Default.Task,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).clickable{
+                        navController.navigate("admin_tasks")
+                    }
                 )
+
             }
 
             SummaryCard(
@@ -88,25 +81,34 @@ fun AdminDashboardScreen(
                 icon = Icons.Default.Star,
                 modifier = Modifier.fillMaxWidth()
             )
+            SummaryCard(
+                title = "Pending social media approval",
+                value = viewModel.totalTasks.value.toString(),
+                icon = Icons.Default.Task,
+                modifier = Modifier.fillMaxWidth().clickable{
+                    navController.navigate("admin_tasks")
+                }
+            )
+            SummaryCard(
+                title = "Pending payment approval",
+                value = viewModel.totalTasks.value.toString(),
+                icon = Icons.Default.Task,
+                modifier = Modifier.fillMaxWidth().clickable{
+                    navController.navigate("admin_tasks")
+                }
+            )
 
 
-            AdminActionButton(
-                label = "Manage Tasks",
-                icon = Icons.Default.List,
-                color = Color.Black
-            ) { navController.navigate("admin_tasks") }
 
-            AdminActionButton(
-                label = "View Users",
-                icon = Icons.Default.People,
-                color = Color.DarkGray
-            ) { navController.navigate("admin_users") }
+
+
             AdminActionButton(
                 label = "Logout",
                 icon = Icons.Default.People,
                 color = Color.DarkGray
             ) {
                 auth.logout()
+                navController.navigate("login")
             }
             // Configure according to number of click in task
 

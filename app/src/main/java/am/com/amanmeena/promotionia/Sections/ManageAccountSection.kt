@@ -1,5 +1,6 @@
 package com.amanmeena.promotionia.Screens
 
+import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -9,7 +10,7 @@ import androidx.navigation.NavController
 import com.amanmeena.promotionia.ui.components.SocialCard
 
 @Composable
-fun ManageAccountsSection(navController: NavController) {
+fun ManageAccountsSection(navController: NavController,viewModel: MainViewModel) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text("Manage Social Media Accounts")
         Spacer(modifier = Modifier.height(12.dp))

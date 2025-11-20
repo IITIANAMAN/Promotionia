@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.sp
 fun ProfileSection(user: Map<String, Any>?) {
     val name = user?.get("name") as? String ?: "User"
     val state = user?.get("state") as? String ?: ""
-    val totalCoin = user?.get("totalCoin") as? Long ?: 0L
     val createdAt = user?.get("createdAt") as? Long ?: 0L
     val memberSince = if (createdAt != 0L) getRelativeTime(createdAt) else "Joined recently"
     Card(
@@ -79,19 +78,6 @@ fun ProfileSection(user: Map<String, Any>?) {
                             )
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text(
-                            text = totalCoin.toString(),
-                            color = Color(0xFF5C4D00),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Default.Face, // You can replace this with your coin logo
-                            contentDescription = "Coin Icon",
-                            tint = Color(0xFFFFC107),
-                            modifier = Modifier.size(18.dp)
-                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))

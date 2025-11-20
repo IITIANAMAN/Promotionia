@@ -14,8 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -25,53 +25,63 @@ import com.amanmeena.promotionia.Screens.SocialMedia
 import com.amanmeena.promotionia.Screens.HomeScreen
 import com.amanmeena.promotionia.Screens.LeaderboardScreen
 
+// ROOT NAVIGATION WRAPPER
 @Composable
-fun MyAppNavigation(modifier: Modifier = Modifier, viewModel: MainViewModel) {
+fun MyAppNavigation(modifier: Modifier = Modifier, sharedViewModel: MainViewModel) {
+
     val navController = rememberNavController()
-    // SINGLE shared AdminViewModel for all admin screens
-    val adminVm = remember { AdminViewModel() }
+    val adminVm = remember { AdminViewModel() }    // SINGLE ADMIN VM
+    val mainVm = sharedViewModel                   // SINGLE USER VM
 
     Scaffold(
         topBar = { PromotioniaTopAppBar(navController) }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            AppNavGraph(navController = navController, modifier = modifier, viewModel = viewModel, adminVm = adminVm)
+
+            AppNavGraph(
+                navController = navController,
+                modifier = modifier,
+                viewModel = mainVm,
+                adminVm = adminVm
+            )
         }
     }
 }
 
+// ---------------- TOP APP BAR -----------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PromotioniaTopAppBar(navController: NavHostController) {
-    val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route
+
+    val backStack by navController.currentBackStackEntryAsState()
+    val route = backStack?.destination?.route ?: ""
 
     TopAppBar(
         title = {
-            if (currentRoute != "login" && currentRoute != "signup") {
+            if (route !in listOf("login", "signup", "verify_email")) {
                 Text(
-                    text = when (currentRoute) {
-                        "home" -> "Promotionia"
-                        "leader" -> "Leaderboard"
-                        "fb" -> "Facebook Accounts"
-                        "admin_users"->"Manage User"
-                        "admin_tasks/add" -> "Add task"
+                    text = when {
+                        route.startsWith("acc/") -> "Social Media Accounts"
+                        route.startsWith("tasks/") -> "Tasks"
+                        route == "leader" -> "Leaderboard"
+                        route == "admin_users" -> "Manage Users"
+                        route == "admin_tasks/add" -> "Add Task"
                         else -> "Promotionia"
-                    },
-                    style = MaterialTheme.typography.titleLarge
+                    }
                 )
             }
         },
         navigationIcon = {
-            if (currentRoute != "home" && currentRoute != "login" && currentRoute != "signup" && currentRoute != "admin") {
+            if (route !in listOf("login", "signup", "home", "admin", "verify_email")) {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.Default.ArrowBack, "Back")
                 }
             }
         }
     )
 }
 
+// -------------------- NAV GRAPH -----------------------
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
@@ -79,37 +89,73 @@ fun AppNavGraph(
     viewModel: MainViewModel,
     adminVm: AdminViewModel
 ) {
-    NavHost(navController = navController, startDestination = "start") {
+    NavHost(navController, startDestination = "start") {
+
         composable("start") { StartScreen(navController) }
-        composable("login") { LoginScreen(modifier = modifier, navController = navController) }
-        composable("signup") { SignUpScreen(modifier = modifier, navController = navController) }
-        composable("home") { HomeScreen(modifier = modifier, navController = navController, viewModel = viewModel) }
-        composable("leader") { LeaderboardScreen(modifier = modifier, navController = navController) }
-        composable("acc/{an}", arguments = listOf(navArgument("an") { type = NavType.StringType })) {
-            val an = it.arguments?.getString("an")
-            SocialMedia(modifier = modifier, an)
+        composable("login") { LoginScreen(modifier, navController) }
+        composable("signup") { SignUpScreen(modifier, navController) }
+        composable("verify_email") { VerifyEmailScreen(navController) }
+
+        composable("home") {
+            HomeScreen(modifier, navController, viewModel)
         }
 
-        // ADMIN / dashboard routes - use shared adminVm
+        composable("leader") {
+            LeaderboardScreen(modifier, navController)
+        }
+
+        composable("acc/{an}",
+            arguments = listOf(navArgument("an") { type = NavType.StringType })
+        ) {
+            val an = it.arguments?.getString("an") ?: ""
+            SocialMedia(modifier, an, viewModel, navController)
+        }
+
+
+        // ----------------- ADMIN SCREENS -----------------
         composable("admin") {
-            AdminDashboardScreen(modifier, navController = navController, viewModel = adminVm)
+            AdminDashboardScreen(modifier, navController, adminVm)
         }
 
         composable("admin_tasks") {
-            AdminTasksScreen(navController = navController, viewModel = adminVm)
+            AdminTasksScreen(navController, adminVm)
         }
 
         composable("admin_tasks/add") {
-            AddTaskScreen(navController = navController, viewModel = adminVm)
+            AddTaskScreen(navController, adminVm)
         }
 
-        composable("admin_tasks/edit/{taskId}", arguments = listOf(navArgument("taskId") { type = NavType.StringType })) { backStackEntry ->
+        composable("admin_tasks/edit/{taskId}",
+            arguments = listOf(navArgument("taskId") { type = NavType.StringType })
+        ) { backStackEntry ->
             val id = backStackEntry.arguments?.getString("taskId") ?: ""
-            EditTaskScreen(taskId = id, navController = navController, viewModel = adminVm)
+            EditTaskScreen(id, navController, adminVm)
         }
 
         composable("admin_users") {
-            AdminUsersScreen(navController = navController, viewModel = adminVm)
+            AdminUsersScreen(navController, adminVm)
+        }
+
+
+        // ------------- FIXED TASKS SCREEN ----------------
+        composable(
+            "tasks/{platform}/{account}",
+            arguments = listOf(
+                navArgument("platform") { type = NavType.StringType },
+                navArgument("account") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+
+            val platform = backStackEntry.arguments?.getString("platform") ?: ""
+            val account = backStackEntry.arguments?.getString("account") ?: ""
+
+            // IMPORTANT FIX — USE SHARED MAIN VIEWMODEL
+            PlatformTaskScreen(
+                platform = platform,
+                accountHandle = account,
+                navController = navController,
+                viewModel = viewModel
+            )
         }
     }
 }

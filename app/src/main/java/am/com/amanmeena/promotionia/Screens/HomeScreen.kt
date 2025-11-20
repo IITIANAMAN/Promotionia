@@ -23,16 +23,14 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier, navController: NavHostController, viewModel: MainViewModel) {
-    LaunchedEffect(Unit) {
-        viewModel.loadCurrentUser()
-    }
+
     val user = viewModel.userData.value
     Surface(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        color = Color.White // light background like website
+            .padding(horizontal = 16.dp),
+        color = Color.White
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -45,11 +43,11 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavHostController, 
             }
 
             BorderedSection {
-                StatsSection()
+                StatsSection(user)
             }
 
             BorderedSection {
-                ManageAccountsSection(navController)
+                ManageAccountsSection(navController,viewModel)
             }
 
             BorderedSection {
@@ -66,7 +64,7 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavHostController, 
                 navController.navigate("login")
             },
             ) {
-                Text("Just use me")
+                Text("Logout")
             }
 
         }

@@ -1,8 +1,14 @@
 package com.amanmeena.promotionia.Screens
 
+import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -11,157 +17,216 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SocialMedia(
-    modifier: Modifier,
-    an: String? ="Facebook"
+    modifier: Modifier = Modifier,
+    an: String = "Facebook",
+    viewModel: MainViewModel,
+    navController: NavController
 ) {
+    // local input states
     var accountName by remember { mutableStateOf("") }
     var accountLink by remember { mutableStateOf("") }
-    var accounts by remember { mutableStateOf(listOf<Pair<String, String>>()) }
+    var isAdding by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+
+    // ensure accounts are loaded (if viewModel needs an explicit call)
 
 
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+    // choose the appropriate source list from ViewModel
+    val accounts = when (an) {
+        "Facebook" -> viewModel.accountsFacebook
+        "Instagram" -> viewModel.accountsInstagram
+        "X", "X (Twitter)", "Twitter", "X (twitter)" -> viewModel.accountsX
+        else -> viewModel.accountsFacebook
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // header
+        Text(
+            text = "Manage your $an accounts",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // add card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(3.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FB))
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Page Header
-            Text(
-                text = "Manage your ${an} accounts",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Add New Account Section
-            AddAccountSection(
-                accountName = accountName,
-                accountLink = accountLink,
-                onNameChange = { accountName = it },
-                onLinkChange = { accountLink = it },
-                onAddClick = {
-                    if (accountName.isNotBlank() && accountLink.isNotBlank()) {
-                        accounts = accounts + (accountName to accountLink)
-                        accountName = ""
-                        accountLink = ""
-                    }
-                },
-                an
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // Display Added Accounts
-            if (accounts.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 40.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No ${an} accounts added yet. Add your first account above!",
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            } else {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Added Accounts (${accounts.size})",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    text = "➕ Add New Account",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
 
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    accounts.forEach { (name, link) ->
-                        AccountItem(name, link)
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "Add a new $an account to receive tasks",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = accountName,
+                    onValueChange = { accountName = it },
+                    label = { Text("Account Name (optional)") },
+                    placeholder = { Text("e.g., @username or display name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = accountLink,
+                    onValueChange = { accountLink = it },
+                    label = { Text("Account Link / Handle") },
+                    placeholder = { Text("") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Button(
+                        onClick = {
+                            // validation
+                            if (accountLink.isBlank()) return@Button
+                            isAdding = true
+                            // call VM to add
+                            viewModel.addAccount(an, accountName.trim(), accountLink.trim())
+                            accountName = ""
+                            accountLink = ""
+                            isAdding = false
+                        },
+                        enabled = !isAdding,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Black,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(text = if (isAdding) "Adding…" else "Add Account")
                     }
                 }
             }
         }
-    }
 
+        Spacer(modifier = Modifier.height(24.dp))
 
-@Composable
-fun AddAccountSection(
-    accountName: String,
-    accountLink: String,
-    onNameChange: (String) -> Unit,
-    onLinkChange: (String) -> Unit,
-    onAddClick: () -> Unit,
-    an: String?,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(3.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FB))
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        // accounts list header
+        if (accounts.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No $an accounts added yet. Add your first account above!",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        } else {
             Text(
-                text = "➕ Add New Account",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = "Add a new ${an} account to receive tasks",
-                fontSize = 13.sp,
-                color = Color.Gray
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Input fields (Name + Link)
-            OutlinedTextField(
-                value = accountName,
-                onValueChange = onNameChange,
-                label = { Text("Account Name") },
-                placeholder = { Text("e.g., @username or display name") },
-                modifier = Modifier.fillMaxWidth()
+                text = "Added Accounts (${accounts.size})",
+                style = MaterialTheme.typography.titleMedium
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = accountLink,
-                onValueChange = onLinkChange,
-                label = { Text("Account Link") },
-                placeholder = { Text("https://facebook.com/username") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                accounts.forEach { raw ->
+                    // stored format can be "name|link" or a plain string
+                    val name: String
+                    val link: String
+                    if (raw.contains("|")) {
+                        val parts = raw.split("|", limit = 2)
+                        name = parts.getOrNull(0).orEmpty()
+                        link = parts.getOrNull(1).orEmpty()
+                    } else {
+                        // attempt to heuristically decide
+                        if (raw.startsWith("@") || raw.contains("http")) {
+                            name = ""
+                            link = raw
+                        } else {
+                            name = raw
+                            link = ""
+                        }
+                    }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = onAddClick,
-                modifier = Modifier.align(Alignment.End),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black,       // background color
-                    contentColor = Color.White          // text/icon color
-                )
-            ) {
-                Text("Add Account")
+                    AccountItem(
+                        name = name,
+                        link = link,
+                        platform = an,
+                        onRemove = {
+                            viewModel.removeAccount(an, raw)
+                        },
+                        navController
+                    )
+                }
             }
         }
+
+        Spacer(modifier = Modifier.height(40.dp))
     }
 }
 
 @Composable
-fun AccountItem(name: String, link: String) {
+fun AccountItem(
+    name: String,
+    link: String,
+    platform: String,
+    onRemove: () -> Unit = {},
+    navController: NavController
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .clickable{
+                navController.navigate("tasks/${platform}/${Uri.encode(link)}")
+            },
         elevation = CardDefaults.cardElevation(2.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(name, style = MaterialTheme.typography.titleSmall)
-            Text(link, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                if (name.isNotBlank()) {
+                    Text(text = name, style = MaterialTheme.typography.titleSmall)
+                }
+                if (link.isNotBlank()) {
+                    Text(text = link, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+
+            // remove button (small)
+            IconButton(onClick = onRemove) {
+                Icon(Icons.Default.Delete,"Delete")
+            }
         }
     }
 }

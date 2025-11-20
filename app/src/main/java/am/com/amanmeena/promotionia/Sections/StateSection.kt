@@ -12,10 +12,11 @@ import androidx.compose.ui.unit.dp
 import com.amanmeena.promotionia.ui.components.InfoCard
 
 @Composable
-fun StatsSection() {
+fun StatsSection(user: Map<String, Any>?) {
+    val totalCoin = user?.get("totalCoin") as? Long ?: 0L
     val statsList = listOf(
         Triple("Tasks Completed", "8", "Completed successfully"),
-        Triple("Pending Tasks", "2", "Waiting to be done"),
+        Triple("Coins",totalCoin.toString(),"Total coins")
     )
 
     Column(modifier = Modifier.fillMaxWidth()) {

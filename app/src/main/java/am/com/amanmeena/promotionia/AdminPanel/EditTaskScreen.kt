@@ -53,12 +53,11 @@ fun EditTaskScreen(
             OutlinedTextField(value = click, onValueChange = { click = it.filter { ch -> ch.isDigit() } }, label = { Text("Number of clicks") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth())
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Active")
-                Switch(checked = isActive, onCheckedChange = { isActive = it })
-            }
+//            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+//                Text("Active")
+//                Switch(checked = isActive, onCheckedChange = { isActive = it })
+//            }
 
-            Spacer(modifier = Modifier.height(8.dp))
 
             Button(onClick = {
                 val updates = mapOf(

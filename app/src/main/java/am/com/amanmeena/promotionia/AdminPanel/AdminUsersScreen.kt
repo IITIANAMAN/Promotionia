@@ -147,6 +147,10 @@ fun UserCard(
                 text = "Coins: ${user.totalCoin}",
                 color = Color(0xFF5A6476)
             )
+            Text(
+                text =  user.number,
+                color = Color(0xFF5A6476)
+            )
         }
     }
 }

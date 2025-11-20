@@ -22,6 +22,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 @Composable
+
 fun LoginScreen(
     modifier: Modifier = Modifier,
     navController: NavController
@@ -75,12 +76,7 @@ fun LoginScreen(
                     onValueChange = { email = it },
                     label = { Text("Email") },
                     singleLine = true,
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Email,
-                            contentDescription = "Email"
-                        )
-                    },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -91,20 +87,14 @@ fun LoginScreen(
                     onValueChange = { password = it },
                     label = { Text("Password") },
                     singleLine = true,
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Lock,
-                            contentDescription = "Password"
-                        )
-                    },
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                    visualTransformation =
+                        if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         Text(
                             if (passwordVisible) "Hide" else "Show",
                             color = Color.Gray,
-                            modifier = Modifier.clickable {
-                                passwordVisible = !passwordVisible
-                            }
+                            modifier = Modifier.clickable { passwordVisible = !passwordVisible }
                         )
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -115,9 +105,7 @@ fun LoginScreen(
                 Text(
                     text = "Forgot Password?",
                     color = Color(0xFF007AFF),
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .clickable { }
+                    modifier = Modifier.align(Alignment.End)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -129,7 +117,7 @@ fun LoginScreen(
 
                 Button(
                     onClick = {
-                        if (email.isEmpty() || password.isEmpty()) {
+                        if (email.isBlank() || password.isBlank()) {
                             errorMessage = "Please fill all fields"
                             return@Button
                         }
@@ -139,26 +127,36 @@ fun LoginScreen(
                             errorMessage = ""
 
                             val result = authClient.login(email, password)
-
                             isLoading = false
 
                             if (result.isSuccess) {
 
                                 val uid = authClient.currentUser()?.uid
 
-
+                                // ADMIN
                                 if (uid == ADMIN_UID) {
                                     navController.navigate("admin") {
                                         popUpTo("login") { inclusive = true }
                                     }
-                                } else {
+                                }
+                                // NORMAL USER
+                                else {
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
                                 }
 
                             } else {
-                                errorMessage = result.exceptionOrNull()?.message ?: "Login failed"
+                                val err = result.exceptionOrNull()?.message ?: "Login failed"
+
+                                // 🔥 redirect to verification screen
+                                if (err.contains("verify", ignoreCase = true)) {
+                                    navController.navigate("verify_email") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                } else {
+                                    errorMessage = err
+                                }
                             }
                         }
                     },

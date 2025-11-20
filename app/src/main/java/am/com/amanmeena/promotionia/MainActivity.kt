@@ -29,10 +29,10 @@ class MainActivity : ComponentActivity() {
                 }
             )
             PromotioniaTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MyAppNavigation(modifier = Modifier.padding(innerPadding),viewModel)
 
-                }
+                    MyAppNavigation(modifier = Modifier,viewModel)
+
+
             }
         }
     }

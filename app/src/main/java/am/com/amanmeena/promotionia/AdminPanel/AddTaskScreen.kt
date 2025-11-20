@@ -53,9 +53,7 @@ fun AddTaskScreen(navController: NavController, viewModel: AdminViewModel) {
                 }
             }
             OutlinedTextField(value = click, onValueChange = { click = it.filter { ch -> ch.isDigit() } }, label = { Text("Number of clicks") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description (optional)") }, modifier = Modifier.fillMaxWidth(), maxLines = 4)
-
-            Spacer(modifier = Modifier.height(10.dp))
+            //OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description (optional)") }, modifier = Modifier.fillMaxWidth(), maxLines = 4)
 
             Button(onClick = {
                 if (title.isBlank() || link.isBlank() || platform.isBlank() || reward.isBlank()) return@Button
