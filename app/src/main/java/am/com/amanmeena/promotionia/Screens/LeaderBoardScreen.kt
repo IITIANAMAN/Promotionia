@@ -1,5 +1,6 @@
 package com.amanmeena.promotionia.Screens
 
+import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -41,8 +42,13 @@ fun LeaderboardScreen(modifier: Modifier,navController: NavController) {
         LeaderboardEntry("Sneha", 580),
         LeaderboardEntry("Rahul", 540)
     )
-    Column(
+
+    Scaffold (
+        topBar = { TopAppBarPromotionia(modifier,"Leaderboard",navController) }
+    ){ it->
+        Column(
             modifier = Modifier
+                .padding(it)
                 .fillMaxSize()
                 .background(Color(0xFFF8F9FB))
 
@@ -55,6 +61,8 @@ fun LeaderboardScreen(modifier: Modifier,navController: NavController) {
             }
         }
     }
+    }
+
 
 
 @Composable

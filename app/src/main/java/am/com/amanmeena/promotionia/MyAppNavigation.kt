@@ -5,6 +5,7 @@ import am.com.amanmeena.promotionia.AdminPanel.AdminDashboardScreen
 import am.com.amanmeena.promotionia.AdminPanel.AdminTasksScreen
 import am.com.amanmeena.promotionia.AdminPanel.AdminUsersScreen
 import am.com.amanmeena.promotionia.AdminPanel.EditTaskScreen
+import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
 import am.com.amanmeena.promotionia.Screens.*
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
 import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -23,20 +25,28 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.amanmeena.promotionia.Screens.SocialMedia
 import com.amanmeena.promotionia.Screens.HomeScreen
-import com.amanmeena.promotionia.Screens.LeaderboardScreen
 
-// ROOT NAVIGATION WRAPPER
+import com.amanmeena.promotionia.Screens.LeaderboardScreen
+import com.google.firebase.auth.FirebaseAuth
+
 @Composable
 fun MyAppNavigation(modifier: Modifier = Modifier, sharedViewModel: MainViewModel) {
 
     val navController = rememberNavController()
-    val adminVm = remember { AdminViewModel() }    // SINGLE ADMIN VM
-    val mainVm = sharedViewModel                   // SINGLE USER VM
+    val adminVm = remember { AdminViewModel() }
+    val mainVm = sharedViewModel
+    // In order to load data to admin panel
+    LaunchedEffect(Unit) {
+        val uid = sharedViewModel.currentUid ?: FirebaseAuth.getInstance().currentUser?.uid
 
-    Scaffold(
-        topBar = { PromotioniaTopAppBar(navController) }
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+        if (uid != null && uid == ADMIN_UID) {
+            adminVm.startAdminRealtime()
+        }
+    }
+//    Scaffold(
+//        topBar = { PromotioniaTopAppBar(navController) }
+//    ) { innerPadding ->
+//        Box(modifier = Modifier.padding(innerPadding)) {
 
             AppNavGraph(
                 navController = navController,
@@ -45,41 +55,40 @@ fun MyAppNavigation(modifier: Modifier = Modifier, sharedViewModel: MainViewMode
                 adminVm = adminVm
             )
         }
-    }
-}
-
-// ---------------- TOP APP BAR -----------------------
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PromotioniaTopAppBar(navController: NavHostController) {
-
-    val backStack by navController.currentBackStackEntryAsState()
-    val route = backStack?.destination?.route ?: ""
-
-    TopAppBar(
-        title = {
-            if (route !in listOf("login", "signup", "verify_email")) {
-                Text(
-                    text = when {
-                        route.startsWith("acc/") -> "Social Media Accounts"
-                        route.startsWith("tasks/") -> "Tasks"
-                        route == "leader" -> "Leaderboard"
-                        route == "admin_users" -> "Manage Users"
-                        route == "admin_tasks/add" -> "Add Task"
-                        else -> "Promotionia"
-                    }
-                )
-            }
-        },
-        navigationIcon = {
-            if (route !in listOf("login", "signup", "home", "admin", "verify_email")) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.ArrowBack, "Back")
-                }
-            }
-        }
-    )
-}
+//    }
+//}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun PromotioniaTopAppBar(navController: NavHostController) {
+//
+//    val backStack by navController.currentBackStackEntryAsState()
+//    val route = backStack?.destination?.route ?: ""
+//
+//    TopAppBar(
+//        title = {
+//            if (route !in listOf("login", "signup", "verify_email","home")) {
+//                Text(
+//                    text = when {
+//                        route.startsWith("acc/") -> "Social Media Accounts"
+//                        route.startsWith("tasks/") -> "Tasks"
+//                        route == "leader" -> "Leaderboard"
+//                        route == "admin_users" -> "Manage Users"
+//                        route == "admin_tasks/add" -> "Add Task"
+//                        route == "admin_tasks" ->"Tasks"
+//                        else -> "Promotionia"
+//                    }
+//                )
+//            }
+//        },
+//        navigationIcon = {
+//            if (route !in listOf("login", "signup", "home", "admin", "verify_email")) {
+//                IconButton(onClick = { navController.popBackStack() }) {
+//                    Icon(Icons.Default.ArrowBack, "Back")
+//                }
+//            }
+//        }
+//    )
+//}
 
 // -------------------- NAV GRAPH -----------------------
 @Composable
@@ -92,12 +101,12 @@ fun AppNavGraph(
     NavHost(navController, startDestination = "start") {
 
         composable("start") { StartScreen(navController) }
-        composable("login") { LoginScreen(modifier, navController) }
+        composable("login") { LoginScreen(modifier, navController,adminVm) }
         composable("signup") { SignUpScreen(modifier, navController) }
         composable("verify_email") { VerifyEmailScreen(navController) }
 
         composable("home") {
-            HomeScreen(modifier, navController, viewModel)
+            HomeScreen( navController, viewModel)
         }
 
         composable("leader") {
@@ -118,6 +127,7 @@ fun AppNavGraph(
         }
 
         composable("admin_tasks") {
+
             AdminTasksScreen(navController, adminVm)
         }
 

@@ -1,6 +1,8 @@
 package am.com.amanmeena.promotionia.Viewmodels
 
 import PersonData
+import am.com.amanmeena.promotionia.Data.TaskItem
+import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -12,26 +14,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-data class TaskItem(
-    val id: String = "",
-    val title: String = "",
-    val link: String = "",
-    val platform: String = "",
-    val reward: Int = 0,
-    val isActive: Boolean = true,
-    val description: String? = null,
-    val click: Int = 0
-)
+
 
 class AdminViewModel(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
 ) : ViewModel() {
-
-    // ------------------- CONFIGURE THIS -------------------
-    // Replace with your admin UID (string)
-    val ADMIN_UID = "odYhlrvS64fTEZPw92w2DwjV1403"
-    // ------------------------------------------------------
     val pendingWithdrawals = mutableStateOf(0)
     // Tasks
     val tasks = mutableStateListOf<TaskItem>()
@@ -49,21 +37,14 @@ class AdminViewModel(
     private var tasksListener: com.google.firebase.firestore.ListenerRegistration? = null
     private var usersListener: com.google.firebase.firestore.ListenerRegistration? = null
 
-    init {
-        listenTasksRealtime()
+    fun startAdminRealtime() {
         listenUsersRealtime()
+        listenTasksRealtime()
         loadStatsOnce()
-        listenWithdrawalRequests()
     }
 
     // Tasks realtime
-    fun listenWithdrawalRequests() {
-        firestore.collection("withdrawals")
-            .whereEqualTo("status", "pending")
-            .addSnapshotListener { snap, _ ->
-                pendingWithdrawals.value = snap?.size() ?: 0
-            }
-    }
+
     fun listenTasksRealtime() {
         tasksListener?.remove()
         tasks.clear()
@@ -108,7 +89,7 @@ class AdminViewModel(
                 statesList.clear()
                 snap?.documents?.forEach { doc ->
                     val uid = doc.id
-                    if (uid == ADMIN_UID) return@forEach // hide admin
+                    if (uid == ADMIN_UID) return@forEach
                     try {
                         val name = doc.getString("name") ?: ""
                         val email = doc.getString("email") ?: ""
@@ -137,7 +118,7 @@ class AdminViewModel(
                             statesList.add(state)
                         }
                     } catch (ex: Exception) {
-                        // ignore per-doc parse errors
+
                     }
                 }
                 totalUsers.value = users.size

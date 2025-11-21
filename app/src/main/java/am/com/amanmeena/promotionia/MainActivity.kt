@@ -29,10 +29,7 @@ class MainActivity : ComponentActivity() {
                 }
             )
             PromotioniaTheme {
-
                     MyAppNavigation(modifier = Modifier,viewModel)
-
-
             }
         }
     }

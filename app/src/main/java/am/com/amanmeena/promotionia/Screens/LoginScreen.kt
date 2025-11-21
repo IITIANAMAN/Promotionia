@@ -2,6 +2,8 @@ package am.com.amanmeena.promotionia.Screens
 
 import am.com.amanmeena.promotionia.AuthClient
 import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
+import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
+import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,7 +27,8 @@ import kotlinx.coroutines.launch
 
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    adminViewModel: AdminViewModel
 ) {
     val authClient = remember { AuthClient() }
     var email by remember { mutableStateOf("") }
@@ -35,164 +38,166 @@ fun LoginScreen(
     var errorMessage by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
-
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(18.dp),
-            elevation = CardDefaults.cardElevation(10.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+    Scaffold(topBar = { TopAppBarPromotionia(modifier,"Login",navController) }) { it->
+        Box(
+            modifier = modifier.fillMaxSize().padding(it),
+            contentAlignment = Alignment.Center
         ) {
-
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .wrapContentHeight(),
+                shape = RoundedCornerShape(18.dp),
+                elevation = CardDefaults.cardElevation(10.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
 
-                Text(
-                    text = "Promotionia",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-                Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Promotionia",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
 
-                Text(
-                    text = "Welcome Back!",
-                    fontSize = 16.sp,
-                    color = Color.Gray
-                )
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = "Welcome Back!",
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
 
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Password") },
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                    visualTransformation =
-                        if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        Text(
-                            if (passwordVisible) "Hide" else "Show",
-                            color = Color.Gray,
-                            modifier = Modifier.clickable { passwordVisible = !passwordVisible }
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Password") },
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        visualTransformation =
+                            if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            Text(
+                                if (passwordVisible) "Hide" else "Show",
+                                color = Color.Gray,
+                                modifier = Modifier.clickable { passwordVisible = !passwordVisible }
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                Text(
-                    text = "Forgot Password?",
-                    color = Color(0xFF007AFF),
-                    modifier = Modifier.align(Alignment.End)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (errorMessage.isNotEmpty()) {
-                    Text(errorMessage, color = Color.Red, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(8.dp))
-                }
 
-                Button(
-                    onClick = {
-                        if (email.isBlank() || password.isBlank()) {
-                            errorMessage = "Please fill all fields"
-                            return@Button
-                        }
+                    Text(
+                        text = "Forgot Password?",
+                        color = Color(0xFF007AFF),
+                        modifier = Modifier.align(Alignment.End)
+                    )
 
-                        scope.launch {
-                            isLoading = true
-                            errorMessage = ""
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                            val result = authClient.login(email, password)
-                            isLoading = false
+                    if (errorMessage.isNotEmpty()) {
+                        Text(errorMessage, color = Color.Red, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
 
-                            if (result.isSuccess) {
+                    Button(
+                        onClick = {
+                            if (email.isBlank() || password.isBlank()) {
+                                errorMessage = "Please fill all fields"
+                                return@Button
+                            }
 
-                                val uid = authClient.currentUser()?.uid
+                            scope.launch {
+                                isLoading = true
+                                errorMessage = ""
 
-                                // ADMIN
-                                if (uid == ADMIN_UID) {
-                                    navController.navigate("admin") {
-                                        popUpTo("login") { inclusive = true }
+                                val result = authClient.login(email, password)
+                                isLoading = false
+
+                                if (result.isSuccess) {
+
+                                    val uid = authClient.currentUser()?.uid
+
+                                    // ADMIN
+                                    if (uid == ADMIN_UID) {
+                                        adminViewModel.startAdminRealtime()
+
+                                        navController.navigate("admin") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
                                     }
-                                }
-                                // NORMAL USER
-                                else {
-                                    navController.navigate("home") {
-                                        popUpTo("login") { inclusive = true }
+                                    // NORMAL USER
+                                    else {
+                                        navController.navigate("home") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
                                     }
-                                }
 
-                            } else {
-                                val err = result.exceptionOrNull()?.message ?: "Login failed"
-
-                                // 🔥 redirect to verification screen
-                                if (err.contains("verify", ignoreCase = true)) {
-                                    navController.navigate("verify_email") {
-                                        popUpTo("login") { inclusive = true }
-                                    }
                                 } else {
-                                    errorMessage = err
+                                    val err = result.exceptionOrNull()?.message ?: "Login failed"
+                                    if (err.contains("verify", ignoreCase = true)) {
+                                        navController.navigate("verify_email") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    } else {
+                                        errorMessage = err
+                                    }
                                 }
                             }
-                        }
-                    },
-                    enabled = !isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        contentColor = Color.White
-                    )
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.size(20.dp)
+                        },
+                        enabled = !isLoading,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Black,
+                            contentColor = Color.White
                         )
-                    } else {
-                        Text("Login", fontSize = 18.sp)
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            Text("Login", fontSize = 18.sp)
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    Text(
+                        text = "New to app? Register here",
+                        color = Color(0xFF007AFF),
+                        modifier = Modifier.clickable {
+                            navController.navigate("signup")
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
                 }
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                Text(
-                    text = "New to app? Register here",
-                    color = Color(0xFF007AFF),
-                    modifier = Modifier.clickable {
-                        navController.navigate("signup")
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
             }
         }
     }
+
 }

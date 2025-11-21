@@ -62,9 +62,6 @@ fun PlatformTaskScreen(
             .padding(16.dp)
     ) {
 
-        // ----------------------------
-        // ⭐ Custom Top Header (NO Scaffold)
-        // ----------------------------
         Text(
             text = "$platform — $accountHandle",
             style = MaterialTheme.typography.titleLarge
@@ -101,11 +98,13 @@ fun PlatformTaskScreen(
                     disabled = disabled,
                     onStart = { reward ->
 
-                        // Start cooldown
-                        disableUntil = System.currentTimeMillis() + 10_000L
-                        scope.launch { delay(10_000L) }
+                        disableUntil = System.currentTimeMillis() + 2_000L
 
-                        // Update Firestore
+                        scope.launch {
+                            delay(5_000L)
+                            disableUntil = 0L
+                        }
+
                         viewModel.markTaskCompletedForAccount(
                             platform = platform,
                             account = accountHandle,

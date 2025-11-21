@@ -1,8 +1,7 @@
 package com.amanmeena.promotionia.Screens
 
-import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import android.net.Uri
-import androidx.compose.foundation.background
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,11 +12,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,168 +31,173 @@ fun SocialMedia(
     viewModel: MainViewModel,
     navController: NavController
 ) {
-    // local input states
-    var accountName by remember { mutableStateOf("") }
-    var accountLink by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var link by remember { mutableStateOf("") }
     var isAdding by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
 
-    // ensure accounts are loaded (if viewModel needs an explicit call)
+    val scroll = rememberScrollState()
+    val context = LocalContext.current
 
-
-    // choose the appropriate source list from ViewModel
-    val accounts = when (an) {
+    // Get approved accounts from ViewModel (kept as name|link format)
+    val approvedAccounts = when (an) {
         "Facebook" -> viewModel.accountsFacebook
         "Instagram" -> viewModel.accountsInstagram
-        "X", "X (Twitter)", "Twitter", "X (twitter)" -> viewModel.accountsX
+        "X", "X (Twitter)", "Twitter" -> viewModel.accountsX
         else -> viewModel.accountsFacebook
     }
 
+    // Pending/Approved requests loaded here
+    val requestsMap = remember { mutableStateMapOf<String, Pair<String, Boolean>>() }
+
+    val uid = FirebaseAuth.getInstance().currentUser?.uid
+    val db = FirebaseFirestore.getInstance()
+
+    // Listen to requests
+    DisposableEffect(uid, an) {
+        var listener: ListenerRegistration? = null
+
+        if (uid != null) {
+            listener = db.collection("requests")
+                .whereEqualTo("uid", uid)
+                .whereEqualTo("platform", an)
+                .addSnapshotListener { snap, _ ->
+                    requestsMap.clear()
+
+                    snap?.documents?.forEach { d ->
+                        val rLink = d.getString("accountLink") ?: ""
+                        val isAccepted = d.getBoolean("isAccepted") ?: false
+                        requestsMap[rLink] = d.id to isAccepted
+                    }
+                }
+        }
+
+        onDispose { listener?.remove() }
+    }
+
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .verticalScroll(scroll)
+            .padding(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(8.dp))
+        Text("Manage your $an accounts", fontSize = 20.sp, color = Color.Gray)
 
-        // header
-        Text(
-            text = "Manage your $an accounts",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.Gray
-        )
+        Spacer(Modifier.height(20.dp))
 
-        Spacer(modifier = Modifier.height(20.dp))
+        // ---------------- ADD NEW REQUEST ----------------
+        Card(colors = CardDefaults.cardColors(Color(0xFFF8F9FB))) {
+            Column(Modifier.padding(16.dp)) {
 
-        // add card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(3.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FB))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "➕ Add New Account",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Text("➕ Add New Account", fontSize = 18.sp)
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "Add a new $an account to receive tasks",
-                    fontSize = 13.sp,
-                    color = Color.Gray
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = accountName,
-                    onValueChange = { accountName = it },
-                    label = { Text("Account Name (optional)") },
-                    placeholder = { Text("e.g., @username or display name") },
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text("Username (optional)") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = accountLink,
-                    onValueChange = { accountLink = it },
-                    label = { Text("Account Link / Handle") },
-                    placeholder = { Text("") },
+                    value = link,
+                    onValueChange = { link = it },
+                    label = { Text("Account Link") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Button(
-                        onClick = {
-                            // validation
-                            if (accountLink.isBlank()) return@Button
-                            isAdding = true
-                            // call VM to add
-                            viewModel.addAccount(an, accountName.trim(), accountLink.trim())
-                            accountName = ""
-                            accountLink = ""
-                            isAdding = false
-                        },
-                        enabled = !isAdding,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Black,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(text = if (isAdding) "Adding…" else "Add Account")
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // accounts list header
-        if (accounts.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 40.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No $an accounts added yet. Add your first account above!",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        } else {
-            Text(
-                text = "Added Accounts (${accounts.size})",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                accounts.forEach { raw ->
-                    // stored format can be "name|link" or a plain string
-                    val name: String
-                    val link: String
-                    if (raw.contains("|")) {
-                        val parts = raw.split("|", limit = 2)
-                        name = parts.getOrNull(0).orEmpty()
-                        link = parts.getOrNull(1).orEmpty()
-                    } else {
-                        // attempt to heuristically decide
-                        if (raw.startsWith("@") || raw.contains("http")) {
-                            name = ""
-                            link = raw
-                        } else {
-                            name = raw
-                            link = ""
+                Button(
+                    onClick = {
+                        if (link.isBlank()) {
+                            Toast.makeText(context, "Enter link", Toast.LENGTH_SHORT).show()
+                            return@Button
                         }
-                    }
 
-                    AccountItem(
-                        name = name,
-                        link = link,
-                        platform = an,
-                        onRemove = {
-                            viewModel.removeAccount(an, raw)
-                        },
-                        navController
-                    )
+                        isAdding = true
+
+                        val data = mapOf(
+                            "uid" to uid,
+                            "platform" to an,
+                            "accountHandel" to username.trim(),
+                            "accountLink" to link.trim(),
+                            "isAccepted" to false,
+                            "createdAt" to System.currentTimeMillis()
+                        )
+
+                        db.collection("requests")
+                            .add(data)
+                            .addOnSuccessListener {
+                                Toast.makeText(context, "Request sent", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnCompleteListener {
+                                username = ""
+                                link = ""
+                                isAdding = false
+                            }
+                    },
+                    enabled = !isAdding,
+                    colors = ButtonDefaults.buttonColors(Color.Black)
+                ) {
+                    Text(if (isAdding) "Sending…" else "Send Request")
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(Modifier.height(24.dp))
+
+        // ---------------- ACCOUNT LIST ----------------
+        val totalCount = approvedAccounts.size + requestsMap.size
+        Text("Accounts ($totalCount)", fontSize = 18.sp)
+
+        Spacer(Modifier.height(12.dp))
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+
+            // ---------- APPROVED accounts from ViewModel ----------
+            approvedAccounts.forEach { raw ->
+                val parts = raw.split("|")
+                val name = parts.getOrNull(0) ?: ""
+                val lnk = parts.getOrNull(1) ?: ""
+
+                AccountItem(
+                    name = name,
+                    link = lnk,
+                    platform = an,
+                    isAccepted = true,
+                    onRemove = { viewModel.removeAccount(an, raw) },
+                    navController = navController,
+                    onCancelRequest = {}
+                )
+            }
+
+            // ---------- PENDING requests (if not in approved list) ----------
+            requestsMap.forEach { (rLink, pair) ->
+                val (reqId, accepted) = pair
+                val isAlreadyApproved = approvedAccounts.any { it.contains(rLink) }
+                if (isAlreadyApproved) return@forEach
+
+                AccountItem(
+                    name = "",
+                    link = rLink,
+                    platform = an,
+                    isAccepted = accepted,
+                    onRemove = {},
+                    navController = navController,
+                    onCancelRequest = {
+                        db.collection("requests").document(reqId).delete()
+                    }
+                )
+            }
+        }
+
+        Spacer(Modifier.height(40.dp))
     }
 }
 
@@ -197,35 +206,47 @@ fun AccountItem(
     name: String,
     link: String,
     platform: String,
-    onRemove: () -> Unit = {},
-    navController: NavController
+    isAccepted: Boolean,
+    onRemove: () -> Unit,
+    navController: NavController,
+    onCancelRequest: () -> Unit
 ) {
+    val clickable = isAccepted && link.isNotEmpty()
+
     Card(
-        modifier = Modifier.fillMaxWidth()
-            .clickable{
-                navController.navigate("tasks/${platform}/${Uri.encode(link)}")
-            },
-        elevation = CardDefaults.cardElevation(2.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(if (isAccepted) 1f else 0.5f)
+            .then(
+                if (clickable) Modifier.clickable {
+                    navController.navigate("tasks/${platform}/${Uri.encode(link)}")
+                } else Modifier
+            ),
+        colors = CardDefaults.cardColors(Color.White)
     ) {
         Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
+            Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                if (name.isNotBlank()) {
-                    Text(text = name, style = MaterialTheme.typography.titleSmall)
-                }
-                if (link.isNotBlank()) {
-                    Text(text = link, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
-                }
+            Column(Modifier.weight(1f)) {
+
+                if (name.isNotEmpty())
+                    Text(name, fontSize = 16.sp)
+
+                Text(link, color = Color.Gray, fontSize = 14.sp)
+
+                if (!isAccepted)
+                    Text("Pending approval", color = Color.Red, fontSize = 12.sp)
             }
 
-            // remove button (small)
-            IconButton(onClick = onRemove) {
-                Icon(Icons.Default.Delete,"Delete")
+            if (isAccepted) {
+                IconButton(onClick = onRemove) {
+                    Icon(Icons.Default.Delete, null)
+                }
+            } else {
+                TextButton(onClick = onCancelRequest) {
+                    Text("Cancel", color = Color.Red)
+                }
             }
         }
     }

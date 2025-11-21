@@ -20,9 +20,7 @@ import androidx.compose.ui.graphics.Color
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminTasksScreen(navController: NavController, viewModel: AdminViewModel) {
-
-    Scaffold(topBar = { TopAppBar(title = { Text("Tasks") }) }) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(viewModel.tasks) { task ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -58,4 +56,3 @@ fun AdminTasksScreen(navController: NavController, viewModel: AdminViewModel) {
             }
         }
     }
-}

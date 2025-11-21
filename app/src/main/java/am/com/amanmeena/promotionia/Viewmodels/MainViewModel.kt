@@ -1,5 +1,6 @@
 package am.com.amanmeena.promotionia.Viewmodels
 
+import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,7 +32,7 @@ class MainViewModel : ViewModel() {
     val userData = mutableStateOf<Map<String, Any>?>(null)
 
     private var userDocListener: ListenerRegistration? = null
-    private var currentUid: String? = null
+    var currentUid: String? = null
 
     // ---------------------------
     // FIX: Call this after LOGIN
@@ -203,4 +204,26 @@ class MainViewModel : ViewModel() {
         userDocListener?.remove()
         super.onCleared()
     }
+    fun sendAccountRequest(platform: String, name: String, link: String) {
+        val uid = auth.currentUser?.uid ?: return
+
+        val data = mapOf(
+            "uid" to uid,
+            "platform" to platform,
+            "accountHandel" to name,
+            "accountLink" to link,
+            "isAccepted" to false,
+            "createdAt" to System.currentTimeMillis()
+        )
+
+        firestore.collection("requests")
+            .add(data)
+            .addOnSuccessListener {
+                Log.d("REQ", "Request sent")
+            }
+            .addOnFailureListener {
+                Log.e("REQ", "Failed: ${it.message}")
+            }
+    }
+
 }

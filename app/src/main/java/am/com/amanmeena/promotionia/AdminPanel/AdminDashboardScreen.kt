@@ -76,12 +76,6 @@ fun AdminDashboardScreen(
             }
 
             SummaryCard(
-                title = "Coins Distributed",
-                value = viewModel.totalCoinsDistributed.value.toString(),
-                icon = Icons.Default.Star,
-                modifier = Modifier.fillMaxWidth()
-            )
-            SummaryCard(
                 title = "Pending social media approval",
                 value = viewModel.totalTasks.value.toString(),
                 icon = Icons.Default.Task,
