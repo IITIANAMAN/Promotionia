@@ -3,6 +3,7 @@ package am.com.amanmeena.promotionia.AdminPanel
 
 
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
+import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +21,10 @@ import androidx.compose.ui.graphics.Color
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminTasksScreen(navController: NavController, viewModel: AdminViewModel) {
-        LazyColumn(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Scaffold(topBar = {
+        TopAppBarPromotionia(Modifier,"Manage all task",navController)
+    }) {it->
+        LazyColumn(modifier = Modifier.padding(it).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(viewModel.tasks) { task ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -55,4 +59,6 @@ fun AdminTasksScreen(navController: NavController, viewModel: AdminViewModel) {
                 }
             }
         }
+    }
+
     }

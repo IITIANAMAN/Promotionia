@@ -14,8 +14,17 @@ import com.amanmeena.promotionia.ui.components.InfoCard
 @Composable
 fun StatsSection(user: Map<String, Any>?) {
     val totalCoin = user?.get("totalCoin") as? Long ?: 0L
+    val completedTasks = user?.get("completedTasks") as? Map<*, *> ?: emptyMap<Any, Any>()
+
+    // Count all tasks done across all platforms and all accounts
+    val totalTasksCompleted = completedTasks.values.sumOf { platformData ->
+        val platformMap = platformData as? Map<*, *> ?: emptyMap<Any, Any>()
+        platformMap.values.sumOf { taskList ->
+            (taskList as? List<*>)?.size ?: 0
+        }
+    }
     val statsList = listOf(
-        Triple("Tasks Completed", "8", "Completed successfully"),
+        Triple("Tasks Completed", "${totalTasksCompleted}", "Completed successfully"),
         Triple("Coins",totalCoin.toString(),"Total coins")
     )
 
@@ -27,14 +36,13 @@ fun StatsSection(user: Map<String, Any>?) {
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        // Responsive Grid Layout for Cards
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 140.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 400.dp) // prevents infinite height growth
+                .heightIn(max = 400.dp)
         ) {
             items(statsList) { (title, value, subtitle) ->
                 InfoCard(title = title, value = value, subtitle = subtitle)

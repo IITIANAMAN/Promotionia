@@ -61,7 +61,7 @@ fun HomeScreen(
     PromoNavDrawer(
         navController = navController,
         viewModel = viewModel,
-        drawerState = drawerState   // ⭐ IMPORTANT
+        drawerState = drawerState
     ) {
 
         Scaffold(
@@ -104,14 +104,7 @@ fun HomeScreen(
 
                 BorderedSection { FollowSection() }
 
-                Button(
-                    onClick = {
-                        AuthClient().logout()
-                        navController.navigate("login")
-                    }
-                ) {
-                    Text("Logout")
-                }
+
             }
         }
     }

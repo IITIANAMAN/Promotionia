@@ -38,9 +38,9 @@ fun LoginScreen(
     var errorMessage by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
-    Scaffold(topBar = { TopAppBarPromotionia(modifier,"Login",navController) }) { it->
+
         Box(
-            modifier = modifier.fillMaxSize().padding(it),
+            modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Card(
@@ -200,4 +200,3 @@ fun LoginScreen(
         }
     }
 
-}

@@ -5,6 +5,7 @@ import am.com.amanmeena.promotionia.AdminPanel.AdminDashboardScreen
 import am.com.amanmeena.promotionia.AdminPanel.AdminTasksScreen
 import am.com.amanmeena.promotionia.AdminPanel.AdminUsersScreen
 import am.com.amanmeena.promotionia.AdminPanel.EditTaskScreen
+import am.com.amanmeena.promotionia.AdminPanel.SocialMediaApprovalScreen
 import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
 import am.com.amanmeena.promotionia.Screens.*
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
@@ -104,7 +105,9 @@ fun AppNavGraph(
         composable("login") { LoginScreen(modifier, navController,adminVm) }
         composable("signup") { SignUpScreen(modifier, navController) }
         composable("verify_email") { VerifyEmailScreen(navController) }
-
+        composable("admin_social_approval") {
+            SocialMediaApprovalScreen(modifier,navController)
+        }
         composable("home") {
             HomeScreen( navController, viewModel)
         }

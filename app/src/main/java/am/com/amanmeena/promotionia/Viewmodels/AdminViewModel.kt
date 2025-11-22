@@ -42,7 +42,16 @@ class AdminViewModel(
         listenTasksRealtime()
         loadStatsOnce()
     }
-
+    val pendingSocialRequests = mutableStateOf(0)
+    // Count of number of request
+    fun listenPendingSocialRequests() {
+        FirebaseFirestore.getInstance()
+            .collection("requests")
+            .whereEqualTo("isAccepted", false)
+            .addSnapshotListener { snap, _ ->
+                pendingSocialRequests.value = snap?.size() ?: 0
+            }
+    }
     // Tasks realtime
 
     fun listenTasksRealtime() {

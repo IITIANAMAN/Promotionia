@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
+import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
 import androidx.compose.ui.Alignment
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -55,67 +56,72 @@ fun PlatformTaskScreen(
                 loading = false
             }
     }
+    Scaffold(
+        topBar = { TopAppBarPromotionia(modifier = Modifier,"${platform} task", navController) }
+    ) { it->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .padding(16.dp)
+        ) {
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
+            Text(
+                text = "$platform — $accountHandle",
+                style = MaterialTheme.typography.titleLarge
+            )
 
-        Text(
-            text = "$platform — $accountHandle",
-            style = MaterialTheme.typography.titleLarge
-        )
+            Spacer(Modifier.height(12.dp))
 
-        Spacer(Modifier.height(12.dp))
-
-        if (loading) {
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator()
+            if (loading) {
+                Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+                return@Column
             }
-            return
-        }
 
-        val visibleTasks = tasks.filter { (id, _) ->
-            id !in completedTasks
-        }
-
-        if (visibleTasks.isEmpty()) {
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
-                Text("No tasks available for this account")
+            val visibleTasks = tasks.filter { (id, _) ->
+                id !in completedTasks
             }
-            return
-        }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(visibleTasks) { (taskId, taskData) ->
+            if (visibleTasks.isEmpty()) {
+                Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    Text("No tasks available for this account")
+                }
+                return@Column
+            }
 
-                val disabled = System.currentTimeMillis() < disableUntil
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(visibleTasks) { (taskId, taskData) ->
 
-                TaskItemCard(
-                    taskId = taskId,
-                    task = taskData,
-                    disabled = disabled,
-                    onStart = { reward ->
+                    val disabled = System.currentTimeMillis() < disableUntil
 
-                        disableUntil = System.currentTimeMillis() + 2_000L
+                    TaskItemCard(
+                        taskId = taskId,
+                        task = taskData,
+                        disabled = disabled,
+                        onStart = { reward ->
 
-                        scope.launch {
-                            delay(5_000L)
-                            disableUntil = 0L
+                            disableUntil = System.currentTimeMillis() + 2_000L
+
+                            scope.launch {
+                                delay(5_000L)
+                                disableUntil = 0L
+                            }
+
+                            viewModel.markTaskCompletedForAccount(
+                                platform = platform,
+                                account = accountHandle,
+                                taskId = taskId,
+                                reward = reward.toLong()
+                            )
                         }
-
-                        viewModel.markTaskCompletedForAccount(
-                            platform = platform,
-                            account = accountHandle,
-                            taskId = taskId,
-                            reward = reward.toLong()
-                        )
-                    }
-                )
+                    )
+                }
             }
         }
     }
+
 }
 
 @Composable

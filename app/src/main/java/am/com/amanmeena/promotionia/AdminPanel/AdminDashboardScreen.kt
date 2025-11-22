@@ -26,9 +26,15 @@ fun AdminDashboardScreen(
     viewModel: AdminViewModel,
 
 ) {
-    LaunchedEffect(Unit) { viewModel.loadStatsOnce() }
+    LaunchedEffect(Unit) {
+        viewModel.loadStatsOnce()
+        viewModel.listenPendingSocialRequests()
+    }
     val auth = AuthClient()
     Scaffold(
+        topBar = {
+            TopAppBar(title = {Text("Admin Dashboard")})
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("admin_tasks/add") },
@@ -77,20 +83,20 @@ fun AdminDashboardScreen(
 
             SummaryCard(
                 title = "Pending social media approval",
-                value = viewModel.totalTasks.value.toString(),
+                value = viewModel.pendingSocialRequests.value.toString(),
                 icon = Icons.Default.Task,
                 modifier = Modifier.fillMaxWidth().clickable{
-                    navController.navigate("admin_tasks")
+                    navController.navigate("admin_social_approval")
                 }
             )
-            SummaryCard(
-                title = "Pending payment approval",
-                value = viewModel.totalTasks.value.toString(),
-                icon = Icons.Default.Task,
-                modifier = Modifier.fillMaxWidth().clickable{
-                    navController.navigate("admin_tasks")
-                }
-            )
+//            SummaryCard(
+//                title = "Pending payment approval",
+//                value = viewModel.totalTasks.value.toString(),
+//                icon = Icons.Default.Task,
+//                modifier = Modifier.fillMaxWidth().clickable{
+//                    navController.navigate("admin_social_approval")
+//                }
+//            )
 
 
 

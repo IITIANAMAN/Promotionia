@@ -2,6 +2,7 @@ package am.com.amanmeena.promotionia.AdminPanel
 
 import PersonData
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
+import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,11 +33,16 @@ fun AdminUsersScreen(
 
 
 
-
+    Scaffold (
+        topBar = {
+            TopAppBarPromotionia(modifier = Modifier,"User Screen",navController)
+        }
+    ){ it->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White )
+                .padding(it)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -50,7 +56,7 @@ fun AdminUsersScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
 
-            )
+                )
             ExposedDropdownMenuBox(
                 expanded = viewModel.stateDropdownExpanded.value,
                 onExpandedChange = {
@@ -72,7 +78,7 @@ fun AdminUsersScreen(
                         )
                     },
 
-                )
+                    )
 
                 ExposedDropdownMenu(
                     expanded = viewModel.stateDropdownExpanded.value,
@@ -113,6 +119,8 @@ fun AdminUsersScreen(
                 }
             }
         }
+    }
+
     }
 
 
