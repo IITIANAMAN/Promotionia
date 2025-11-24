@@ -1,7 +1,9 @@
 package am.com.amanmeena.promotionia.AdminPanel
 
 import am.com.amanmeena.promotionia.AuthClient
+import am.com.amanmeena.promotionia.R
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,7 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,6 +94,14 @@ fun AdminDashboardScreen(
                     navController.navigate("admin_social_approval")
                 }
             )
+            SummaryCard(
+                title = "Total Accounts",
+                value = "FB: ${viewModel.totalFBAccount.value} Insta: ${viewModel.totalInstaAccount.value} X: ${viewModel.totalXAccount.value}",
+                icon = Icons.Default.Task,
+                modifier = Modifier.fillMaxWidth().clickable{
+                    navController.navigate("admin_social_approval")
+                }
+            )
 //            SummaryCard(
 //                title = "Pending payment approval",
 //                value = viewModel.totalTasks.value.toString(),
@@ -142,14 +155,19 @@ fun SummaryCard(
                     .background(Color.Black, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = Color.White)
+                if(title == "Total Accounts"){
+                    Image(painter = painterResource(R.drawable.fb),"Image")
+                }else{
+                    Icon(icon, contentDescription = null, tint = Color.White)
+                }
+
             }
 
             Spacer(modifier = Modifier.width(14.dp))
 
             Column {
                 Text(title, style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray)
-                Text(value, style = MaterialTheme.typography.headlineSmall, color = Color.Black)
+                Text(value, style = MaterialTheme.typography.headlineSmall, color = Color.Black, fontSize = 18.sp)
             }
         }
     }

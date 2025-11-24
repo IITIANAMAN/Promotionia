@@ -3,6 +3,7 @@ package am.com.amanmeena.promotionia.Viewmodels
 import PersonData
 import am.com.amanmeena.promotionia.Data.TaskItem
 import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
+import android.R
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -28,6 +29,12 @@ class AdminViewModel(
     val totalUsers = mutableStateOf(0)
     val totalCoinsDistributed = mutableStateOf(0L)
     val errorMessage = mutableStateOf<String?>(null)
+    val totalSocialMediaAccount = mutableStateOf(0)
+    val totalFBAccount = mutableStateOf(0L)
+    val totalInstaAccount = mutableStateOf(0L)
+    val totalLinkedInAccount = mutableStateOf(0L)
+    val totalXAccount = mutableStateOf(0L)
+    val totalYoutubeAccount = mutableStateOf(0L)
 
     // Users
     val users = mutableStateListOf<PersonData>()
@@ -141,13 +148,30 @@ class AdminViewModel(
             try {
                 val usersSnap = firestore.collection("users").get().await()
                 totalUsers.value = usersSnap.size()
+
                 var sum = 0L
+                var fb = 0L
+                var insta = 0L
+                var x = 0L
+
                 usersSnap.documents.forEach { d ->
                     val coin = d.getLong("totalCoin") ?: 0L
                     sum += coin
+                    val fbList = d.get("accountFB") as? List<String> ?: emptyList()
+                    val InstaList = d.get("accountInsta") as? List<String> ?: emptyList()
+                    val XList = d.get("accountX") as? List<String> ?: emptyList()
+                    fb += fbList.size
+                    insta += InstaList.size
+                    x += XList.size
+
                 }
+
+                totalFBAccount.value = fb
+                totalXAccount.value = x
+                totalInstaAccount.value = insta
                 totalCoinsDistributed.value = sum
                 totalTasks.value = firestore.collection("tasks").get().await().size()
+
             } catch (e: Exception) {
                 errorMessage.value = e.message
             } finally {
