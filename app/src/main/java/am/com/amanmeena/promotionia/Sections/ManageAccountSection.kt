@@ -22,7 +22,7 @@ fun ManageAccountsSection(navController: NavController, viewModel: MainViewModel
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),  // 🔥 Better UX
+                .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             SocialCard("Facebook", navController, false)
