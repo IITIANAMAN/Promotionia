@@ -98,18 +98,9 @@ fun AdminDashboardScreen(
                 title = "Total Accounts",
                 value = "FB: ${viewModel.totalFBAccount.value} Insta: ${viewModel.totalInstaAccount.value} X: ${viewModel.totalXAccount.value}",
                 icon = Icons.Default.Task,
-                modifier = Modifier.fillMaxWidth().clickable{
-                    navController.navigate("admin_social_approval")
-                }
+                modifier = Modifier.fillMaxWidth()
             )
-//            SummaryCard(
-//                title = "Pending payment approval",
-//                value = viewModel.totalTasks.value.toString(),
-//                icon = Icons.Default.Task,
-//                modifier = Modifier.fillMaxWidth().clickable{
-//                    navController.navigate("admin_social_approval")
-//                }
-//            )
+
 
 
 
@@ -123,7 +114,7 @@ fun AdminDashboardScreen(
                 auth.logout()
                 navController.navigate("login")
             }
-            // Configure according to number of click in task
+
 
         }
 
@@ -148,7 +139,7 @@ fun SummaryCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // Circle Icon Badge
+
             Box(
                 modifier = Modifier
                     .size(45.dp)
@@ -189,41 +180,5 @@ fun AdminActionButton(
         Icon(icon, contentDescription = null)
         Spacer(Modifier.width(8.dp))
         Text(label)
-    }
-}
-@Composable
-fun NotificationBell(
-    count: Int,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .padding(4.dp)
-    ) {
-        IconButton(onClick = onClick) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = "Notifications",
-                tint = Color.Black,
-                modifier = Modifier.size(28.dp)
-            )
-        }
-
-        if (count > 0) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(18.dp)
-                    .background(Color.Red, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (count > 9) "9+" else count.toString(),
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        }
     }
 }

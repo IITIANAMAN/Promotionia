@@ -7,8 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 class MainViewModel : ViewModel() {
 
@@ -16,7 +18,7 @@ class MainViewModel : ViewModel() {
         private const val TAG = "APP_VM"
         private const val FIRE_TAG = "APP_FIRE"
     }
-
+    val userDeletedState = mutableStateOf(false)
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
@@ -34,19 +36,30 @@ class MainViewModel : ViewModel() {
     private var userDocListener: ListenerRegistration? = null
     var currentUid: String? = null
 
-    // ---------------------------
-    // FIX: Call this after LOGIN
-    // ---------------------------
     fun reInitForNewUser(uid: String) {
         if (currentUid == uid) return // already same user
-
-        Log.d(TAG, "Reinitializing ViewModel for new UID = $uid")
 
         currentUid = uid
         clearLocalData()
         startUserListeners(uid)
     }
 
+    fun saveFcmToken() {
+        val uid = currentUid ?: return
+        FirebaseMessaging.getInstance().token
+            .addOnSuccessListener { token ->
+                if (token.isNullOrBlank()) return@addOnSuccessListener
+                val userRef = firestore.collection("users").document(uid)
+                userRef.update("fcmToken", token)
+                    .addOnSuccessListener { /* ok */ }
+                    .addOnFailureListener { e ->
+                        userRef.set(mapOf("fcmToken" to token), SetOptions.merge())
+                    }
+            }
+    }
+    fun currentUserToken(): String? {
+        return userData.value?.get("fcmToken") as? String
+    }
     // Clear old user cache
     private fun clearLocalData() {
         accountsFacebook.clear()
@@ -86,33 +99,13 @@ class MainViewModel : ViewModel() {
     }
 
     private fun ensureUserDocExists(uid: String, onDone: () -> Unit) {
-        val docRef = firestore.collection("users").document(uid)
-
-        docRef.get().addOnSuccessListener { snap ->
-            if (snap.exists()) {
+        firestore.collection("users").document(uid)
+            .get()
+            .addOnSuccessListener { snap ->
+                // If doc exists → OK
+                // If doc doesn't exist → DO NOTHING (AuthClient will create)
                 onDone()
-            } else {
-                // Create new user doc
-                val default = mapOf(
-                    "uid" to uid,
-                    "name" to "",
-                    "email" to auth.currentUser?.email.orEmpty(),
-                    "number" to "",
-                    "state" to "",
-                    "accountFB" to listOf<String>(),
-                    "accountInsta" to listOf<String>(),
-                    "accountX" to listOf<String>(),
-                    "totalCoin" to 0,
-                    "totalCoinFb" to 0,
-                    "totalCoinInsta" to 0,
-                    "totalCoinX" to 0,
-                    "completedTasks" to mapOf<String, Any>(),
-                    "createdAt" to System.currentTimeMillis()
-                )
-
-                docRef.set(default).addOnSuccessListener { onDone() }
             }
-        }
     }
 
     private fun attachUserSnapshotListener(uid: String) {
@@ -121,8 +114,31 @@ class MainViewModel : ViewModel() {
         userDocListener = firestore.collection("users")
             .document(uid)
             .addSnapshotListener { snap, error ->
-                if (error != null || snap == null) return@addSnapshotListener
+                if (error != null) {
+                    // you can log or handle error
+                    return@addSnapshotListener
+                }
 
+                // If document doesn't exist => admin deleted it
+                if (snap == null || !snap.exists()) {
+                    // Sign out user and flag deletion for UI
+                    try {
+                        FirebaseAuth.getInstance().signOut()
+                    } catch (ex: Exception) {
+                        // ignore
+                    }
+
+                    // Clear local cached data
+                    clearLocalData()
+                    userDeletedState.value = true
+
+                    // remove listener to avoid repeated triggers
+                    userDocListener?.remove()
+                    userDocListener = null
+                    return@addSnapshotListener
+                }
+
+                // Normal behaviour when doc exists
                 userData.value = snap.data
 
                 accountsFacebook.apply {
@@ -139,6 +155,9 @@ class MainViewModel : ViewModel() {
                     clear()
                     addAll((snap.get("accountX") as? List<String>) ?: emptyList())
                 }
+
+                // reset deletion flag if it was set previously and doc re-created
+                if (userDeletedState.value) userDeletedState.value = false
             }
     }
 
@@ -204,26 +223,34 @@ class MainViewModel : ViewModel() {
         userDocListener?.remove()
         super.onCleared()
     }
-    fun sendAccountRequest(platform: String, name: String, link: String) {
-        val uid = auth.currentUser?.uid ?: return
+    fun markFollowTaskDone(taskKey: String, reward: Long = 20) {
+        val uid = currentUid ?: return
+        val userRef = firestore.collection("users").document(uid)
 
-        val data = mapOf(
-            "uid" to uid,
-            "platform" to platform,
-            "accountHandel" to name,
-            "accountLink" to link,
-            "isAccepted" to false,
-            "createdAt" to System.currentTimeMillis()
-        )
+        firestore.runTransaction { tr ->
+            val snap = tr.get(userRef)
 
-        firestore.collection("requests")
-            .add(data)
-            .addOnSuccessListener {
-                Log.d("REQ", "Request sent")
+            // read old map or empty
+            val followMap = snap.get("followTasks") as? Map<String, Boolean> ?: emptyMap()
+            val updatedMap = followMap.toMutableMap()
+            updatedMap[taskKey] = true
+
+            // check if all tasks completed
+            val allDone = updatedMap.values.size == 4 && updatedMap.values.all { it }
+
+            val rewardGiven = snap.getBoolean("followRewardGiven") ?: false
+
+            if (allDone && !rewardGiven) {
+                tr.update(userRef, mapOf(
+                    "totalCoin" to FieldValue.increment(reward),
+                    "followRewardGiven" to true
+                ))
             }
-            .addOnFailureListener {
-                Log.e("REQ", "Failed: ${it.message}")
-            }
+
+            // always save progress
+            tr.update(userRef, "followTasks", updatedMap)
+        }
     }
+
 
 }

@@ -3,7 +3,9 @@ package am.com.amanmeena.promotionia.Screens
 import am.com.amanmeena.promotionia.AuthClient
 import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
+import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,12 +25,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 
 fun LoginScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    adminViewModel: AdminViewModel
+    adminViewModel: AdminViewModel,
+    mainViewModel: MainViewModel
 ) {
     val authClient = remember { AuthClient() }
     var email by remember { mutableStateOf("") }
@@ -136,6 +140,12 @@ fun LoginScreen(
 
                                     val uid = authClient.currentUser()?.uid
 
+                                    // VERY IMPORTANT
+                                    mainViewModel.reInitForNewUser(uid!!)
+
+                                    // Save FCM token
+                                    mainViewModel.saveFcmToken()
+
                                     // ADMIN
                                     if (uid == ADMIN_UID) {
                                         adminViewModel.startAdminRealtime()
@@ -150,7 +160,6 @@ fun LoginScreen(
                                             popUpTo("login") { inclusive = true }
                                         }
                                     }
-
                                 } else {
                                     val err = result.exceptionOrNull()?.message ?: "Login failed"
                                     if (err.contains("verify", ignoreCase = true)) {

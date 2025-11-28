@@ -68,8 +68,6 @@ fun SocialMediaApprovalScreen(
 fun PlatformRequestList(platform: String) {
     val db = FirebaseFirestore.getInstance()
     var requests by remember { mutableStateOf<List<SocialRequest>>(emptyList()) }
-
-    // 🔥 Single listener — safest fix
     DisposableEffect(platform) {
         val listener = db.collection("requests")
             .whereEqualTo("platform", platform)
@@ -80,8 +78,6 @@ fun PlatformRequestList(platform: String) {
 
                 val docs = snap.documents
                 val temp = mutableListOf<SocialRequest>()
-
-                // 🔥 FETCH USER NAME ONCE using .get() (not listener)
                 docs.forEach { d ->
                     val uid = d.getString("uid") ?: ""
 
@@ -98,7 +94,8 @@ fun PlatformRequestList(platform: String) {
                                     platform = platform,
                                     name = d.getString("accountHandel") ?: "",
                                     link = d.getString("accountLink") ?: "",
-                                    userName = userName
+                                    userName = userName,
+                                    userToken = d.getString("userToken") ?: ""   // ⭐ ADDED
                                 )
                             )
 
@@ -117,8 +114,6 @@ fun PlatformRequestList(platform: String) {
 
         onDispose { listener.remove() }
     }
-
-    // ---------- UI -----------
     if (requests.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -219,9 +214,15 @@ fun approveRequest(req: SocialRequest) {
         else -> "accountX"
     }
 
+    // 1️⃣ Add to approved accounts
     db.collection("users").document(req.uid)
         .update(field, FieldValue.arrayUnion("${req.name}|${req.link}"))
 
-    // 🚀 Remove request forever
+    // 2️⃣ Delete request
     db.collection("requests").document(req.id).delete()
+
+    // 3️⃣ Send notification
+    if (req.userToken.isNotEmpty()) {
+
+    }
 }

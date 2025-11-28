@@ -6,5 +6,6 @@ data class SocialRequest(
     val platform: String = "",
     val name: String = "",
     val link: String = "",
-    val userName: String = ""
+    val userName: String = "",
+    val userToken: String = ""
 )

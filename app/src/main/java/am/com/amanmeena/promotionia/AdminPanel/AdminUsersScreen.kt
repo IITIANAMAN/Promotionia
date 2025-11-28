@@ -4,6 +4,7 @@ import PersonData
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
 import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -115,7 +116,7 @@ fun AdminUsersScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(filteredUsers) { user ->
-                    UserCard(user)
+                    UserCard(user,navController, adminViewModel = viewModel)
                 }
             }
         }
@@ -126,14 +127,19 @@ fun AdminUsersScreen(
 
 @Composable
 fun UserCard(
-    user: PersonData
+    user: PersonData,
+    navController: NavController,
+    adminViewModel: AdminViewModel
 ) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFF3F6FB)
         ),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().clickable{
+            adminViewModel.selectedUser.value = user
+            navController.navigate("userprofile")
+        }
     ) {
         Column(
             modifier = Modifier.padding(12.dp)

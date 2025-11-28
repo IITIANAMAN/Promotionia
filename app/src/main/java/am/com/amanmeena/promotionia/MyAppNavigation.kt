@@ -6,15 +6,14 @@ import am.com.amanmeena.promotionia.AdminPanel.AdminTasksScreen
 import am.com.amanmeena.promotionia.AdminPanel.AdminUsersScreen
 import am.com.amanmeena.promotionia.AdminPanel.EditTaskScreen
 import am.com.amanmeena.promotionia.AdminPanel.SocialMediaApprovalScreen
+import am.com.amanmeena.promotionia.AdminPanel.UserProfile
 import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
 import am.com.amanmeena.promotionia.Screens.*
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
 import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -99,10 +98,31 @@ fun AppNavGraph(
     viewModel: MainViewModel,
     adminVm: AdminViewModel
 ) {
+    val userDeleted by viewModel.userDeletedState
+
+    if (userDeleted) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Account Deleted") },
+            text = { Text("Your account has been deleted by the Admin.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.userDeletedState.value = false
+                        navController.navigate("login") {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                ) {
+                    Text("OK")
+                }
+            }
+        )
+    }
     NavHost(navController, startDestination = "start") {
 
         composable("start") { StartScreen(navController) }
-        composable("login") { LoginScreen(modifier, navController,adminVm) }
+        composable("login") { LoginScreen(modifier, navController,adminVm,viewModel) }
         composable("signup") { SignUpScreen(modifier, navController) }
         composable("verify_email") { VerifyEmailScreen(navController) }
         composable("admin_social_approval") {
@@ -124,7 +144,7 @@ fun AppNavGraph(
         }
 
 
-        // ----------------- ADMIN SCREENS -----------------
+
         composable("admin") {
             AdminDashboardScreen(modifier, navController, adminVm)
         }
@@ -148,9 +168,12 @@ fun AppNavGraph(
         composable("admin_users") {
             AdminUsersScreen(navController, adminVm)
         }
+        composable ("userprofile",){
+            val data = adminVm.selectedUser
+            UserProfile(data,navController)
+        }
 
 
-        // ------------- FIXED TASKS SCREEN ----------------
         composable(
             "tasks/{platform}/{account}",
             arguments = listOf(

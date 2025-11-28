@@ -134,6 +134,7 @@ fun SocialMedia(
                                 "platform" to normalizedPlatform,
                                 "accountHandel" to username.trim(),
                                 "accountLink" to link.trim(),
+                                "userToken" to viewModel.currentUserToken(),
                                 "isAccepted" to false,
                                 "createdAt" to System.currentTimeMillis()
                             )

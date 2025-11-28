@@ -3,6 +3,7 @@ package am.com.amanmeena.promotionia
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 class AuthClient {
@@ -10,7 +11,9 @@ class AuthClient {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
-    // SIGNUP
+    // -----------------------------------------
+    // SIGNUP (Creates FULL Firestore user data)
+    // -----------------------------------------
     suspend fun signUp(
         name: String,
         email: String,
@@ -21,32 +24,11 @@ class AuthClient {
         return try {
 
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val firebaseUser = result.user ?: return Result.failure(Exception("User creation failed"))
+            val user = result.user ?: return Result.failure(Exception("User creation failed"))
 
-            firebaseUser.sendEmailVerification().await()
-
-
-            auth.signOut()
-
-            Result.success(true)
-
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-    suspend fun createUserDocIfNotExists(
-        uid: String,
-        name: String,
-        email: String,
-        number: String,
-        state: String
-    ) {
-        val docRef = firestore.collection("users").document(uid)
-        val doc = docRef.get().await()
-
-        if (!doc.exists()) {
-            val data = mapOf(
-                "uid" to uid,
+            // FULL Firestore doc creation
+            val userData = mapOf(
+                "uid" to user.uid,
                 "name" to name,
                 "email" to email,
                 "number" to number,
@@ -62,11 +44,59 @@ class AuthClient {
                 "createdAt" to System.currentTimeMillis()
             )
 
-            docRef.set(data).await()
+            firestore.collection("users")
+                .document(user.uid)
+                .set(userData, SetOptions.merge())
+                .await()
+
+            user.sendEmailVerification().await()
+            auth.signOut()
+
+            Result.success(true)
+
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
-    // LOGIN — BLOCK UNVERIFIED USERS
+    // ---------------------------------------------------------
+    // Create FULL doc (if login happens before signup finishes)
+    // ---------------------------------------------------------
+    private suspend fun createUserDocIfNotExists(
+        uid: String,
+        email: String
+    ) {
+        val doc = firestore.collection("users").document(uid).get().await()
+
+        if (!doc.exists()) {
+
+            val defaultData = mapOf(
+                "uid" to uid,
+                "email" to email,
+                "name" to "",
+                "number" to "",
+                "state" to "",
+                "accountFB" to emptyList<String>(),
+                "accountInsta" to emptyList<String>(),
+                "accountX" to emptyList<String>(),
+                "completedTasks" to emptyMap<String, Any>(),
+                "totalCoin" to 0,
+                "totalCoinFb" to 0,
+                "totalCoinInsta" to 0,
+                "totalCoinX" to 0,
+                "createdAt" to System.currentTimeMillis()
+            )
+
+            firestore.collection("users")
+                .document(uid)
+                .set(defaultData, SetOptions.merge())
+                .await()
+        }
+    }
+
+    // -----------------------------------------
+    // LOGIN (make sure Firestore doc exists)
+    // -----------------------------------------
     suspend fun login(email: String, password: String): Result<Boolean> {
         return try {
             val result = auth.signInWithEmailAndPassword(email, password).await()
@@ -78,14 +108,8 @@ class AuthClient {
                 return Result.failure(Exception("Please verify your email first."))
             }
 
-            // 🔥 Create Firestore document now only once after verification
-            createUserDocIfNotExists(
-                uid = user.uid,
-                name = user.displayName ?: "",
-                email = user.email ?: "",
-                number = "",
-                state = ""
-            )
+            // ensure Firestore doc exists PROPERLY
+            createUserDocIfNotExists(user.uid, user.email ?: "")
 
             Result.success(true)
 
@@ -93,13 +117,15 @@ class AuthClient {
             Result.failure(e)
         }
     }
-    // RESEND VERIFICATION
+
+    // -----------------------------------------
+    // RESEND EMAIL
+    // -----------------------------------------
     suspend fun resendVerification(): Result<Boolean> {
-        val user = auth.currentUser ?: return Result.failure(Exception("Not logged in"))
         return try {
+            val user = auth.currentUser ?: return Result.failure(Exception("Not logged in"))
             if (user.isEmailVerified)
                 return Result.failure(Exception("Email already verified"))
-
             user.sendEmailVerification().await()
             Result.success(true)
         } catch (e: Exception) {

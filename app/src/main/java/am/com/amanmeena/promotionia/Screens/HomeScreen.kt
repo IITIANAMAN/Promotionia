@@ -1,6 +1,7 @@
 package com.amanmeena.promotionia.Screens
 
 import am.com.amanmeena.promotionia.AuthClient
+import am.com.amanmeena.promotionia.Components.UpdatesPager
 import am.com.amanmeena.promotionia.R
 import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import androidx.compose.foundation.BorderStroke
@@ -17,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,6 +38,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +60,29 @@ fun HomeScreen(
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    // inside HomeScreen composable (after you have val viewModel = ... or get via param)
+    val userDeleted by viewModel.userDeletedState
 
+    if (userDeleted) {
+        // show blocking dialog
+        AlertDialog(
+            onDismissRequest = { /* block dismissal so user acknowledges */ },
+            title = { Text("Account Deleted") },
+            text = { Text("Your account has been deleted by the admin. You will be logged out.") },
+            confirmButton = {
+                Button(onClick = {
+                    // Reset the flag (optional) and navigate to login, clearing backstack
+                    viewModel.userDeletedState.value = false
+                    // If you are in a NavHostController named navController:
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true } // clears stack so user can't go back
+                    }
+                }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
     PromoNavDrawer(
         navController = navController,
         viewModel = viewModel,
@@ -70,7 +95,7 @@ fun HomeScreen(
                     title = { Text("Promotionia") },
                     navigationIcon = {
                         IconButton(onClick = {
-                            scope.launch { drawerState.open() }   // ⭐ Opens same drawer
+                            scope.launch { drawerState.open() }
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Menu,
@@ -102,7 +127,7 @@ fun HomeScreen(
 
                 BorderedSection { LeaderboardSection(navController) }
 
-                BorderedSection { FollowSection() }
+                BorderedSection { FollowSection(viewModel) }
 
 
             }
@@ -197,56 +222,4 @@ fun DrawerItem(text: String,navController: NavController) {
                        },
         color = Color.Black
     )
-}
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun UpdatesPager() {
-
-    val pages = listOf(
-        R.drawable.sample1,
-        R.drawable.sample2,
-        R.drawable.sample3
-    )
-
-    val pagerState = rememberPagerState(
-        initialPage = 0,
-        pageCount = { pages.size }
-    )
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(0.dp)    // NO GAP
-    ) {
-
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(90.dp)    // Set to your actual image height
-        ) { page ->
-            Image(
-                painter = painterResource(id = pages[page]),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 4.dp)
-        ) {
-            repeat(pages.size) { index ->
-                val color = if (pagerState.currentPage == index) Color.Black else Color.LightGray
-                Box(
-                    Modifier
-                        .size(8.dp)
-                        .padding(3.dp)
-                        .background(color, CircleShape)
-                )
-            }
-        }
-    }
 }

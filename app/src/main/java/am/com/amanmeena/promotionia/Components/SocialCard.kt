@@ -42,7 +42,7 @@ fun SocialCard(
     Box(
         modifier = Modifier
             .padding(6.dp)
-            .size(55.dp)  // 🔥 pure icon size
+            .size(55.dp)
             .graphicsLayer(alpha = iconAlpha)
             .clickable {
                 if(comingSoon == true){
@@ -54,29 +54,13 @@ fun SocialCard(
             },
         contentAlignment = Alignment.Center
     ) {
-        // Icon
+
         Image(
             painter = painterResource(iconRes),
             contentDescription = "$platform icon",
             modifier = Modifier.fillMaxSize()
         )
 
-        // Coming soon strike-through
-//        if (comingSoon) {
-//            Canvas(modifier = Modifier.fillMaxSize()) {
-//                drawLine(
-//                    color = Color.Black.copy(alpha = 0.6f),
-//                    start = androidx.compose.ui.geometry.Offset(0f, 0f),
-//                    end = androidx.compose.ui.geometry.Offset(size.width, size.height),
-//                    strokeWidth = 6f
-//                )
-//                drawLine(
-//                    color = Color.Black.copy(alpha = 0.6f),
-//                    start = androidx.compose.ui.geometry.Offset(size.width, 0f),
-//                    end = androidx.compose.ui.geometry.Offset(0f, size.height),
-//                    strokeWidth = 6f
-//                )
-//            }
-//        }
+
     }
 }

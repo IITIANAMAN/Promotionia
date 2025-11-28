@@ -1,5 +1,6 @@
 package com.amanmeena.promotionia.Screens
 
+import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.*
@@ -13,23 +14,25 @@ import com.amanmeena.promotionia.ui.components.FollowCard
 import kotlinx.coroutines.delay
 
 @Composable
-fun FollowSection() {
-    val context = LocalContext.current
+fun FollowSection(viewModel: MainViewModel) {
 
-    // 🧠 States
+    val user = viewModel.userData.value
+
+    val followMap = user?.get("followTasks") as? Map<String, Boolean> ?: emptyMap()
+    val completedCount = followMap.values.count { it }
+
+    val context = LocalContext.current
     var cooldownActive by remember { mutableStateOf(false) }
     var cooldownTime by remember { mutableStateOf(0) }
-    var completedCount by remember { mutableStateOf(0) }
 
-    // ✅ All tasks
     val socialLinks = listOf(
-        Triple("YouTube", "Promotionia Official", "https://www.youtube.com/@promotionia"),
-        Triple("Instagram", "@promotionia_official", "https://www.instagram.com/promotionia_official"),
-        Triple("Facebook", "Promotionia", "https://www.facebook.com/promotionia"),
-        Triple("X (Twitter)", "@promotionia", "https://twitter.com/promotionia")
+        Triple("youtube", "Promotionia Official", "https://www.youtube.com/@promotionia"),
+        Triple("instagram", "@promotionia_official", "https://www.instagram.com/promotionia_official"),
+        Triple("facebook", "Promotionia", "https://www.facebook.com/promotionia"),
+        Triple("twitter", "@promotionia", "https://twitter.com/promotionia")
     )
 
-    // ⏱️ Cooldown timer coroutine
+    // Cooldown Timer
     LaunchedEffect(cooldownActive) {
         if (cooldownActive) {
             cooldownTime = 5
@@ -41,50 +44,45 @@ fun FollowSection() {
         }
     }
 
-    // 🌐 UI
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Follow Promotionia",
-            style = MaterialTheme.typography.titleMedium
-        )
+    Column(Modifier.fillMaxWidth()) {
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Text("Follow Promotionia", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(6.dp))
+
         Text(
-            text = "${completedCount} / ${socialLinks.size} tasks completed",
+            "$completedCount / ${socialLinks.size} tasks completed",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.primary
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(Modifier.height(12.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            socialLinks.forEach { (platform, handle, link) ->
+            socialLinks.forEach { (key, handle, url) ->
+
+                val done = followMap[key] == true
+
                 FollowCard(
-                    platform = platform,
+                    platform = key,
                     handle = handle,
+                    isEnabled = !cooldownActive && !done,
                     onClick = {
-                        if (!cooldownActive) {
-                            // Open link instantly
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
-                            context.startActivity(intent)
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        context.startActivity(intent)
 
-                            // Increment completed tasks
-                            completedCount++
+                        // save progress in firestore
+                        viewModel.markFollowTaskDone(key)
 
-                            // Start cooldown
-                            cooldownActive = true
-                        }
-                    },
-                    isEnabled = !cooldownActive
+                        cooldownActive = true
+                    }
                 )
             }
         }
 
-        // Optional visual indicator for cooldown
         if (cooldownActive) {
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(Modifier.height(10.dp))
             Text(
-                text = "Please wait ${cooldownTime}s before next action…",
+                "Please wait ${cooldownTime}s before next action…",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.error
             )

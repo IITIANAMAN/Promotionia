@@ -3,12 +3,13 @@ package am.com.amanmeena.promotionia.Viewmodels
 import PersonData
 import am.com.amanmeena.promotionia.Data.TaskItem
 import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
-import android.R
+import android.util.Log
+
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.common.util.CollectionUtils.mapOf
+
 import kotlin.collections.mapOf
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -22,6 +23,7 @@ class AdminViewModel(
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
 ) : ViewModel() {
     val pendingWithdrawals = mutableStateOf(0)
+
     // Tasks
     val tasks = mutableStateListOf<TaskItem>()
     val isLoading = mutableStateOf(false)
@@ -38,6 +40,7 @@ class AdminViewModel(
 
     // Users
     val users = mutableStateListOf<PersonData>()
+    val selectedUser = mutableStateOf<PersonData?>(null)
     val statesList = mutableStateListOf<String>()
     var stateDropdownExpanded = mutableStateOf(false)
 
@@ -49,7 +52,9 @@ class AdminViewModel(
         listenTasksRealtime()
         loadStatsOnce()
     }
+
     val pendingSocialRequests = mutableStateOf(0)
+
     // Count of number of request
     fun listenPendingSocialRequests() {
         FirebaseFirestore.getInstance()
@@ -116,14 +121,19 @@ class AdminViewModel(
                         val totalCoinInsta = (doc.getLong("totalCoinInsta") ?: 0L).toInt()
                         val totalCoinX = (doc.getLong("totalCoinX") ?: 0L).toInt()
 
+                        val accountFB = doc.get("accountFB") as? List<String> ?: emptyList()
+                        val accountInsta = doc.get("accountInsta") as? List<String> ?: emptyList()
+                        val accountX = doc.get("accountX") as? List<String> ?: emptyList()
+
                         val p = PersonData(
+                            uid = uid,
                             name = name,
                             email = email,
                             number = number,
                             state = state,
-                            accountFB = listOf(),
-                            accountInsta = listOf(),
-                            accountX = listOf(),
+                            accountFB = accountFB,
+                            accountInsta = accountInsta,
+                            accountX = accountX,
                             totalCoin = totalCoin,
                             totalCoinFb = totalCoinFb,
                             totalCoinInsta = totalCoinInsta,
