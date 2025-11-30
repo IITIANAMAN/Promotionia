@@ -4,46 +4,22 @@ import am.com.amanmeena.promotionia.AuthClient
 import am.com.amanmeena.promotionia.Components.UpdatesPager
 import am.com.amanmeena.promotionia.R
 import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -51,38 +27,40 @@ import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 
 
+// --------------------------------------------------
+// HOME SCREEN
+// --------------------------------------------------
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun HomeScreen(
     navController: NavHostController,
     viewModel: MainViewModel
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    // inside HomeScreen composable (after you have val viewModel = ... or get via param)
+    val colors = MaterialTheme.colorScheme
+    val isDark = isSystemInDarkTheme()
+
     val userDeleted by viewModel.userDeletedState
 
+    // If admin deleted the account
     if (userDeleted) {
-        // show blocking dialog
         AlertDialog(
-            onDismissRequest = { /* block dismissal so user acknowledges */ },
+            onDismissRequest = {},
             title = { Text("Account Deleted") },
-            text = { Text("Your account has been deleted by the admin. You will be logged out.") },
+            text = { Text("Your account has been deleted by the admin.") },
             confirmButton = {
                 Button(onClick = {
-                    // Reset the flag (optional) and navigate to login, clearing backstack
                     viewModel.userDeletedState.value = false
-                    // If you are in a NavHostController named navController:
                     navController.navigate("login") {
-                        popUpTo(0) { inclusive = true } // clears stack so user can't go back
+                        popUpTo(0) { inclusive = true }
                     }
-                }) {
-                    Text("OK")
-                }
+                }) { Text("OK") }
             }
         )
     }
+
     PromoNavDrawer(
         navController = navController,
         viewModel = viewModel,
@@ -91,18 +69,31 @@ fun HomeScreen(
 
         Scaffold(
             topBar = {
+                val isDark = isSystemInDarkTheme()
+
                 TopAppBar(
-                    title = { Text("Promotionia") },
+                    title = {
+                        Text(
+                            "Promotionia",
+                            color = if (isDark) Color.White else Color.Black
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = {
                             scope.launch { drawerState.open() }
                         }) {
                             Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu"
+                                Icons.Default.Menu,
+                                contentDescription = "Menu",
+                                tint = if (isDark) Color.White else Color.Black
                             )
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = if (isDark) Color.Black else Color.White,
+                        titleContentColor = if (isDark) Color.White else Color.Black,
+                        navigationIconContentColor = if (isDark) Color.White else Color.Black
+                    )
                 )
             }
         ) { padding ->
@@ -128,25 +119,40 @@ fun HomeScreen(
                 BorderedSection { LeaderboardSection(navController) }
 
                 BorderedSection { FollowSection(viewModel) }
-
-
             }
         }
     }
 }
+
+
+// --------------------------------------------------
+// BORDERED SECTION (THEME AWARE)
+// --------------------------------------------------
+
 @Composable
 fun BorderedSection(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
+    val isDark = isSystemInDarkTheme()
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 2.dp),
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+
+        border = BorderStroke(
+            1.dp,
+            if (isDark) Color(0xFF2A2A2A) else Color(0xFFE0E0E0)
+        ),
+
+        colors = CardDefaults.cardColors(
+            containerColor = colors.surface
+        ),
+
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -155,10 +161,20 @@ fun BorderedSection(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             content()
-            Divider(color = Color(0xFFF1F1F1), thickness = 0.8.dp)
+
+            Divider(
+                color = if (isDark) Color(0xFF3A3A3A) else Color(0xFFF1F1F1),
+                thickness = 0.8.dp
+            )
         }
     }
 }
+
+
+// --------------------------------------------------
+// DRAWER
+// --------------------------------------------------
+
 @Composable
 fun PromoNavDrawer(
     navController: NavHostController,
@@ -167,11 +183,16 @@ fun PromoNavDrawer(
     content: @Composable () -> Unit
 ) {
 
+    val colors = MaterialTheme.colorScheme
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
+
             ModalDrawerSheet(
-                modifier = Modifier.width(260.dp)
+                modifier = Modifier.width(260.dp),
+                drawerContainerColor = colors.surface,
+                drawerContentColor = colors.onSurface
             ) {
 
                 Column(
@@ -180,46 +201,84 @@ fun PromoNavDrawer(
                         .padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+
                     Image(
                         painter = painterResource(id = R.drawable.`in`),
                         contentDescription = "Profile Logo",
                         modifier = Modifier
                             .size(90.dp)
-                            .background(Color.LightGray, CircleShape)
-                            .padding(8.dp)
+                            .clip(CircleShape)
+                            .background(colors.surfaceVariant)
+                            .padding(8.dp),
+                        contentScale = ContentScale.Crop
                     )
+
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Promotionia", style = MaterialTheme.typography.titleMedium)
+
+                    Text(
+                        "Promotionia",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.onSurface
+                    )
                 }
 
-                Divider()
+                Divider(color = colors.outlineVariant)
 
-                DrawerItem("Help", navController)
+                DrawerItem("About app", navController)
                 DrawerItem("Contact Us", navController)
                 DrawerItem("Logout", navController)
+                DrawerItem("Reward History", navController)
+                DrawerItem("Account request history", navController)
+                DrawerItem("Withdrawal request", navController)
             }
         },
         content = content
     )
 }
 
+
+// --------------------------------------------------
+// DRAWER ITEM
+// --------------------------------------------------
+
 @Composable
-fun DrawerItem(text: String,navController: NavController) {
+fun DrawerItem(text: String, navController: NavController) {
+
+    val context = LocalContext.current
+    val colors = MaterialTheme.colorScheme
+
     Text(
         text,
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
             .clickable {
-                if(text == "help"){
-                    navController.navigate("help")
-                } else if(text == "Logout"){
-                    AuthClient().logout()
-                    navController.navigate("login") { popUpTo(0) }
-                }else{
-                    navController.navigate("Contact")
+
+                when (text) {
+
+                    "About app" -> {
+                        navController.navigate("about_app")
+                    }
+
+                    "Logout" -> {
+                        AuthClient().logout()
+                        navController.navigate("login") { popUpTo(0) }
+                    }
+
+                    "Contact Us" -> {
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:")
+                            putExtra(Intent.EXTRA_EMAIL, arrayOf("promotionia.support@gmail.com"))
+                            putExtra(Intent.EXTRA_SUBJECT, "Support Request – Promotionia")
+                        }
+                        context.startActivity(intent)
+                    }
+
+                    "Reward History" -> navController.navigate("user_reward_history")
+                    "Withdrawal request" -> navController.navigate("user_transaction_history")
+                    "Account request history" -> navController.navigate("user_account_history")
                 }
-                       },
-        color = Color.Black
+            },
+        color = colors.onSurface
     )
 }

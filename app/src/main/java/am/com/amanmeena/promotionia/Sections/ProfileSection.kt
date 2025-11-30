@@ -23,15 +23,22 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun ProfileSection(user: Map<String, Any>?) {
+
+    val colors = MaterialTheme.colorScheme
+
     val name = user?.get("name") as? String ?: "User"
     val state = user?.get("state") as? String ?: ""
     val createdAt = user?.get("createdAt") as? Long ?: 0L
     val memberSince = if (createdAt != 0L) getRelativeTime(createdAt) else "Joined recently"
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FB)),
+        colors = CardDefaults.cardColors(
+            containerColor = colors.surface // FIXED: Works for dark + light
+        ),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
+
         Row(
             modifier = Modifier
                 .padding(16.dp)
@@ -39,22 +46,24 @@ fun ProfileSection(user: Map<String, Any>?) {
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // Profile Avatar
+            // Profile Avatar Circle
             Box(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape)
-                    .background(Color.Black),
+                    .background(colors.primary), // FIXED
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "A", color = Color.White, fontSize = 24.sp)
+                Text(
+                    text = name.firstOrNull()?.uppercase() ?: "A",
+                    color = colors.onPrimary, // FIXED
+                    fontSize = 24.sp
+                )
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Info Section
             Column(modifier = Modifier.fillMaxWidth()) {
-
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -65,25 +74,36 @@ fun ProfileSection(user: Map<String, Any>?) {
                     Text(
                         name,
                         style = MaterialTheme.typography.titleMedium,
+                        color = colors.onSurface, // FIXED
                         fontSize = 18.sp
                     )
-
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .background(
-                                color = Color(0xFFFFF4D1),
+                                color = colors.secondaryContainer, // FIXED
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                    }
+                    ) { }
                 }
+
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(memberSince, color = Color.Gray, fontSize = 14.sp)
+
+                Text(
+                    memberSince,
+                    color = colors.onBackground, // FIXED
+                    fontSize = 14.sp
+                )
+
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(state, color = Color.Gray, fontSize = 14.sp)
+
+                Text(
+                    state,
+                    color = colors.onSurfaceVariant, // FIXED
+                    fontSize = 14.sp
+                )
             }
         }
     }

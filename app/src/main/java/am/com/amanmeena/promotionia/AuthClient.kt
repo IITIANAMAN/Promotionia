@@ -37,10 +37,12 @@ class AuthClient {
                 "accountInsta" to emptyList<String>(),
                 "accountX" to emptyList<String>(),
                 "completedTasks" to emptyMap<String, Any>(),
+                "rewardHistory" to emptyList<Map<String, Any>>(),   // ← ADD THIS
                 "totalCoin" to 0,
                 "totalCoinFb" to 0,
                 "totalCoinInsta" to 0,
                 "totalCoinX" to 0,
+                "totalCoinMap" to 0,
                 "createdAt" to System.currentTimeMillis()
             )
 
@@ -80,10 +82,12 @@ class AuthClient {
                 "accountInsta" to emptyList<String>(),
                 "accountX" to emptyList<String>(),
                 "completedTasks" to emptyMap<String, Any>(),
+                "rewardHistory" to emptyList<Map<String, Any>>(),   // ← ADD THIS
                 "totalCoin" to 0,
                 "totalCoinFb" to 0,
                 "totalCoinInsta" to 0,
                 "totalCoinX" to 0,
+                "totalCoinMap" to 0,
                 "createdAt" to System.currentTimeMillis()
             )
 

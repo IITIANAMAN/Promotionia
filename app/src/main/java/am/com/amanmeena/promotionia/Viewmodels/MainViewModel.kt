@@ -14,20 +14,17 @@ import com.google.firebase.firestore.SetOptions
 
 class MainViewModel : ViewModel() {
 
-    companion object {
-        private const val TAG = "APP_VM"
-        private const val FIRE_TAG = "APP_FIRE"
-    }
-    val userDeletedState = mutableStateOf(false)
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
-    // Account lists
+    val userDeletedState = mutableStateOf(false)
+
+    // Accounts
     val accountsFacebook = mutableStateListOf<String>()
     val accountsInstagram = mutableStateListOf<String>()
     val accountsX = mutableStateListOf<String>()
 
-    // Completed tasks (per account)
+    // Completed tasks for the UI screen
     val completedTasksForScreen = mutableStateOf<List<String>>(emptyList())
 
     // Full user data
@@ -36,31 +33,35 @@ class MainViewModel : ViewModel() {
     private var userDocListener: ListenerRegistration? = null
     var currentUid: String? = null
 
-    fun reInitForNewUser(uid: String) {
-        if (currentUid == uid) return // already same user
+    init {
+        // Auto detect logged-in user
+        auth.currentUser?.uid?.let { uid ->
+            reInitForNewUser(uid)
+        }
 
+        // Detect login/logout
+        auth.addAuthStateListener { fa ->
+            val uid = fa.currentUser?.uid
+            if (uid != null) {
+                reInitForNewUser(uid)
+            } else {
+                userDocListener?.remove()
+                clearLocalData()
+            }
+        }
+    }
+
+    //-----------------------------------------------------
+    // USER INIT
+    //-----------------------------------------------------
+    fun reInitForNewUser(uid: String) {
+        if (currentUid == uid) return
         currentUid = uid
         clearLocalData()
+        ensureGoogleCoinFieldExists()
         startUserListeners(uid)
     }
 
-    fun saveFcmToken() {
-        val uid = currentUid ?: return
-        FirebaseMessaging.getInstance().token
-            .addOnSuccessListener { token ->
-                if (token.isNullOrBlank()) return@addOnSuccessListener
-                val userRef = firestore.collection("users").document(uid)
-                userRef.update("fcmToken", token)
-                    .addOnSuccessListener { /* ok */ }
-                    .addOnFailureListener { e ->
-                        userRef.set(mapOf("fcmToken" to token), SetOptions.merge())
-                    }
-            }
-    }
-    fun currentUserToken(): String? {
-        return userData.value?.get("fcmToken") as? String
-    }
-    // Clear old user cache
     private fun clearLocalData() {
         accountsFacebook.clear()
         accountsInstagram.clear()
@@ -68,44 +69,46 @@ class MainViewModel : ViewModel() {
         completedTasksForScreen.value = emptyList()
         userData.value = null
     }
+    fun ensureGoogleCoinFieldExists() {
+        val uid = currentUid ?: return
+        val userRef = firestore.collection("users").document(uid)
 
-    init {
-        // Initial auto-detection (important for app restart)
-        auth.currentUser?.uid?.let {
-            Log.d(TAG, "App started with logged-in UID = $it")
-            reInitForNewUser(it)
-        }
+        val defaults = mapOf(
+            "totalCoinMap" to 0L,
+            "completedTasks" to mapOf(
+                "GoogleReview" to mapOf(
+                    "global" to emptyList<String>()
+                )
+            )
+        )
 
-        // Detect login/logout events
-        auth.addAuthStateListener { firebaseAuth ->
-            val newUid = firebaseAuth.currentUser?.uid
-            if (newUid != null) {
-                reInitForNewUser(newUid)
-            } else {
-                // user logged out → remove listener + clear data
-                userDocListener?.remove()
-                clearLocalData()
-            }
+        userRef.set(defaults, SetOptions.merge())
+    }
+
+    //-----------------------------------------------------
+    // FCM TOKEN
+    //-----------------------------------------------------
+    fun saveFcmToken() {
+        val uid = currentUid ?: return
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            if (token.isNullOrBlank()) return@addOnSuccessListener
+            firestore.collection("users").document(uid)
+                .set(mapOf("fcmToken" to token), SetOptions.merge())
         }
     }
 
-    // -------- Start Firestore user listener --------
+    //-----------------------------------------------------
+    // User Document Listener
+    //-----------------------------------------------------
     private fun startUserListeners(uid: String) {
-        userDocListener?.remove()
-
         ensureUserDocExists(uid) {
             attachUserSnapshotListener(uid)
         }
     }
 
     private fun ensureUserDocExists(uid: String, onDone: () -> Unit) {
-        firestore.collection("users").document(uid)
-            .get()
-            .addOnSuccessListener { snap ->
-                // If doc exists → OK
-                // If doc doesn't exist → DO NOTHING (AuthClient will create)
-                onDone()
-            }
+        firestore.collection("users").document(uid).get()
+            .addOnSuccessListener { onDone() }
     }
 
     private fun attachUserSnapshotListener(uid: String) {
@@ -114,31 +117,16 @@ class MainViewModel : ViewModel() {
         userDocListener = firestore.collection("users")
             .document(uid)
             .addSnapshotListener { snap, error ->
-                if (error != null) {
-                    // you can log or handle error
-                    return@addSnapshotListener
-                }
+                if (error != null) return@addSnapshotListener
 
-                // If document doesn't exist => admin deleted it
                 if (snap == null || !snap.exists()) {
-                    // Sign out user and flag deletion for UI
-                    try {
-                        FirebaseAuth.getInstance().signOut()
-                    } catch (ex: Exception) {
-                        // ignore
-                    }
-
-                    // Clear local cached data
+                    FirebaseAuth.getInstance().signOut()
                     clearLocalData()
                     userDeletedState.value = true
-
-                    // remove listener to avoid repeated triggers
                     userDocListener?.remove()
-                    userDocListener = null
                     return@addSnapshotListener
                 }
 
-                // Normal behaviour when doc exists
                 userData.value = snap.data
 
                 accountsFacebook.apply {
@@ -156,30 +144,15 @@ class MainViewModel : ViewModel() {
                     addAll((snap.get("accountX") as? List<String>) ?: emptyList())
                 }
 
-                // reset deletion flag if it was set previously and doc re-created
                 if (userDeletedState.value) userDeletedState.value = false
             }
     }
 
-    // -------- Add / Remove account ----------
-    fun addAccount(platform: String, name: String, link: String) {
-        val uid = currentUid ?: return
-
-        val field = when (platform) {
-            "Facebook" -> "accountFB"
-            "Instagram" -> "accountInsta"
-            else -> "accountX"
-        }
-
-        val item = "$name|$link"
-
-        firestore.collection("users").document(uid)
-            .update(field, FieldValue.arrayUnion(item))
-    }
-
+    //-----------------------------------------------------
+    // ACCOUNT REMOVE
+    //-----------------------------------------------------
     fun removeAccount(platform: String, rawItem: String) {
         val uid = currentUid ?: return
-
         val field = when (platform) {
             "Facebook" -> "accountFB"
             "Instagram" -> "accountInsta"
@@ -190,39 +163,107 @@ class MainViewModel : ViewModel() {
             .update(field, FieldValue.arrayRemove(rawItem))
     }
 
-    // -------- Task completion ----------
+    //-----------------------------------------------------
+    // SAVE REWARD HISTORY
+    //-----------------------------------------------------
+    fun saveRewardHistory(taskId: String, reward: Long) {
+        val uid = currentUid ?: return
+
+        val entry = mapOf(
+            "uid" to uid,
+            "taskId" to taskId,
+            "reward" to reward,
+            "time" to System.currentTimeMillis()
+        )
+
+        firestore.collection("reward_history").add(entry)
+    }
+
+    //-----------------------------------------------------
+    // MARK TASK COMPLETED
+    //-----------------------------------------------------
     fun markTaskCompletedForAccount(platform: String, account: String, taskId: String, reward: Long) {
         val uid = currentUid ?: return
+        val userRef = firestore.collection("users").document(uid)
 
         val coinField = when (platform) {
             "Facebook" -> "totalCoinFb"
             "Instagram" -> "totalCoinInsta"
+            "GoogleReview" -> "totalCoinMap"
             else -> "totalCoinX"
         }
+
+        val fullPath = "completedTasks.$platform.$account"
 
         val updates = mapOf(
             "totalCoin" to FieldValue.increment(reward),
             coinField to FieldValue.increment(reward),
-            "completedTasks.$platform.$account" to FieldValue.arrayUnion(taskId)
+            fullPath to FieldValue.arrayUnion(taskId)
         )
 
-        firestore.collection("users").document(uid).update(updates)
+        userRef.update(updates)
+            .addOnFailureListener {
+                // fallback if the map does not exist
+                userRef.set(
+                    mapOf(
+                        "completedTasks" to mapOf(
+                            platform to mapOf(
+                                account to listOf(taskId)
+                            )
+                        )
+                    ),
+                    SetOptions.merge()
+                )
+            }
+    }
+    fun ensureGoogleMapStructureExists() {
+        val uid = currentUid ?: return
+        val userRef = firestore.collection("users").document(uid)
+
+        val defaultMap = mapOf(
+            "completedTasks" to mapOf(
+                "GoogleReview" to mapOf(
+                    "global" to emptyList<String>()
+                )
+            )
+        )
+
+        userRef.set(defaultMap, SetOptions.merge())
+    }
+    fun currentUserToken(): String? {
+        return userData.value?.get("fcmToken") as? String
     }
 
-    // -------- Listen completed tasks for UI ----------
+    //-----------------------------------------------------
+    // LISTEN COMPLETED TASKS (Social Media)
+    //-----------------------------------------------------
     fun listenCompletedTasksForAccount(platform: String, account: String) {
         val uid = currentUid ?: return
         firestore.collection("users").document(uid)
             .addSnapshotListener { snap, _ ->
-                val list = (snap?.get("completedTasks.$platform.$account") as? List<String>) ?: emptyList()
+                val list =
+                    (snap?.get("completedTasks.$platform.$account") as? List<String>) ?: emptyList()
                 completedTasksForScreen.value = list
             }
     }
 
-    override fun onCleared() {
-        userDocListener?.remove()
-        super.onCleared()
+    //-----------------------------------------------------
+    // LISTEN COMPLETED GOOGLE REVIEW TASKS
+    //-----------------------------------------------------
+    fun listenGoogleReviewCompletedTasks() {
+        val uid = currentUid ?: return
+        firestore.collection("users").document(uid)
+            .addSnapshotListener { snap, _ ->
+                val list =
+                    (snap?.get("completedTasks.GoogleReview.global") as? List<String>)
+                        ?: emptyList()
+                completedTasksForScreen.value = list
+            }
     }
+
+    //-----------------------------------------------------
+    // FOLLOW TASK REWARD
+    //-----------------------------------------------------
     fun markFollowTaskDone(taskKey: String, reward: Long = 20) {
         val uid = currentUid ?: return
         val userRef = firestore.collection("users").document(uid)
@@ -230,27 +271,27 @@ class MainViewModel : ViewModel() {
         firestore.runTransaction { tr ->
             val snap = tr.get(userRef)
 
-            // read old map or empty
-            val followMap = snap.get("followTasks") as? Map<String, Boolean> ?: emptyMap()
-            val updatedMap = followMap.toMutableMap()
-            updatedMap[taskKey] = true
+            val oldMap = snap.get("followTasks") as? Map<String, Boolean> ?: emptyMap()
+            val newMap = oldMap.toMutableMap()
+            newMap[taskKey] = true
 
-            // check if all tasks completed
-            val allDone = updatedMap.values.size == 4 && updatedMap.values.all { it }
-
+            val allDone = (newMap.values.size == 4 && newMap.values.all { it })
             val rewardGiven = snap.getBoolean("followRewardGiven") ?: false
 
             if (allDone && !rewardGiven) {
-                tr.update(userRef, mapOf(
-                    "totalCoin" to FieldValue.increment(reward),
-                    "followRewardGiven" to true
-                ))
+                tr.update(
+                    userRef,
+                    "totalCoin", FieldValue.increment(reward),
+                    "followRewardGiven", true
+                )
             }
 
-            // always save progress
-            tr.update(userRef, "followTasks", updatedMap)
+            tr.update(userRef, "followTasks", newMap)
         }
     }
 
-
+    override fun onCleared() {
+        userDocListener?.remove()
+        super.onCleared()
+    }
 }

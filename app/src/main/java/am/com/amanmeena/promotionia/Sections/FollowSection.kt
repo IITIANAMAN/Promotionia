@@ -17,11 +17,11 @@ import kotlinx.coroutines.delay
 fun FollowSection(viewModel: MainViewModel) {
 
     val user = viewModel.userData.value
-
     val followMap = user?.get("followTasks") as? Map<String, Boolean> ?: emptyMap()
     val completedCount = followMap.values.count { it }
 
     val context = LocalContext.current
+
     var cooldownActive by remember { mutableStateOf(false) }
     var cooldownTime by remember { mutableStateOf(0) }
 
@@ -44,20 +44,29 @@ fun FollowSection(viewModel: MainViewModel) {
         }
     }
 
+    val colors = MaterialTheme.colorScheme
+
     Column(Modifier.fillMaxWidth()) {
 
-        Text("Follow Promotionia", style = MaterialTheme.typography.titleMedium)
+        // Title
+        Text(
+            "Follow Promotionia",
+            style = MaterialTheme.typography.titleMedium,
+            color = colors.onBackground
+        )
+
         Spacer(Modifier.height(6.dp))
 
         Text(
             "$completedCount / ${socialLinks.size} tasks completed",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary
+            color = colors.primary
         )
 
         Spacer(Modifier.height(12.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
             socialLinks.forEach { (key, handle, url) ->
 
                 val done = followMap[key] == true
@@ -70,7 +79,6 @@ fun FollowSection(viewModel: MainViewModel) {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                         context.startActivity(intent)
 
-                        // save progress in firestore
                         viewModel.markFollowTaskDone(key)
 
                         cooldownActive = true
@@ -84,7 +92,7 @@ fun FollowSection(viewModel: MainViewModel) {
             Text(
                 "Please wait ${cooldownTime}s before next action…",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.error
+                color = colors.error
             )
         }
     }

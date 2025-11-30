@@ -33,7 +33,7 @@ fun SocialCard(
         "x" -> R.drawable.x
         "youtube" -> R.drawable.yt
         "linkedin" -> R.drawable.`in`
-        else -> R.drawable.`in`
+        else -> R.drawable.map
     }
     val context = LocalContext.current
 
@@ -45,7 +45,9 @@ fun SocialCard(
             .size(55.dp)
             .graphicsLayer(alpha = iconAlpha)
             .clickable {
-                if(comingSoon == true){
+                if(platform == "Map"){
+                    navController.navigate("google_review_tasks")
+                }else if(comingSoon == true){
                     Toast.makeText(context,"Coming soon",Toast.LENGTH_LONG).show()
                 }else{
                     navController.navigate("acc/$platform")

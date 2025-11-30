@@ -1,6 +1,6 @@
 package com.amanmeena.promotionia.Screens
 
-import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
+import TopAppBarPromotionia
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -29,7 +29,10 @@ data class LeaderboardEntry(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LeaderboardScreen(modifier: Modifier,navController: NavController) {
+fun LeaderboardScreen(modifier: Modifier, navController: NavController) {
+
+    val colors = MaterialTheme.colorScheme
+
     val dummyData = listOf(
         LeaderboardEntry("Aman", 950),
         LeaderboardEntry("Rohan", 870),
@@ -43,34 +46,54 @@ fun LeaderboardScreen(modifier: Modifier,navController: NavController) {
         LeaderboardEntry("Rahul", 540)
     )
 
-    Scaffold (
-        topBar = { TopAppBarPromotionia(modifier,"Leaderboard",navController) }
-    ){ it->
+    Scaffold(
+        topBar = { TopAppBarPromotionia(modifier, "Leaderboard", navController) }
+    ) { padding ->
+
         Column(
             modifier = Modifier
-                .padding(it)
+                .padding(padding)
                 .fillMaxSize()
-                .background(Color(0xFFF8F9FB))
-
+                .background(colors.background)      // THEMED BACKGROUND
                 .padding(16.dp)
         ) {
+
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 itemsIndexed(dummyData) { index, item ->
-                    LeaderboardRow(rank = index + 1, name = item.name, coins = item.coins)
+                    LeaderboardRow(
+                        rank = index + 1,
+                        name = item.name,
+                        coins = item.coins
+                    )
                 }
             }
         }
     }
-    }
+}
 
 
 
 @Composable
 fun LeaderboardRow(rank: Int, name: String, coins: Int) {
+
+    val colors = MaterialTheme.colorScheme
+
+    // KEEP gold/silver/bronze, but adapt "others" to theme
+    val rankColor = when (rank) {
+        1 -> Color(0xFFFFD700)   // Gold
+        2 -> Color(0xFFC0C0C0)   // Silver
+        3 -> Color(0xFFCD7F32)   // Bronze
+        else -> colors.surfaceVariant   // THEMED FIX!
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = colors.surface   // THEMING FIX
+        ),
         elevation = CardDefaults.cardElevation(3.dp)
     ) {
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -78,30 +101,36 @@ fun LeaderboardRow(rank: Int, name: String, coins: Int) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+
             Row(verticalAlignment = Alignment.CenterVertically) {
+
                 Box(
                     modifier = Modifier
                         .size(36.dp)
-                        .background(
-                            when (rank) {
-                                1 -> Color(0xFFFFD700) // Gold
-                                2 -> Color(0xFFC0C0C0) // Silver
-                                3 -> Color(0xFFCD7F32) // Bronze
-                                else -> Color.LightGray
-                            },
-                            shape = CircleShape
-                        ),
+                        .background(rankColor, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("#$rank", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "#$rank",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (rank <= 3) Color.Black else colors.onSurface // fix visibility
+                    )
                 }
+
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(name, style = MaterialTheme.typography.titleMedium)
+
+                Text(
+                    name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = colors.onSurface          // FIXED
+                )
             }
+
             Text(
-                text = "${coins} Coins",
+                text = "$coins Coins",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = colors.primary              // THEMED
             )
         }
     }

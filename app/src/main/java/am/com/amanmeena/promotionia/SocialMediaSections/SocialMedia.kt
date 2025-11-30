@@ -13,13 +13,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
-import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
+import TopAppBarPromotionia
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -38,8 +37,8 @@ fun SocialMedia(
 
     val scroll = rememberScrollState()
     val context = LocalContext.current
+    val colors = MaterialTheme.colorScheme
 
-    // Approved accounts from user document
     val approvedAccounts = when (an) {
         "Facebook" -> viewModel.accountsFacebook
         "Instagram" -> viewModel.accountsInstagram
@@ -47,13 +46,11 @@ fun SocialMedia(
         else -> viewModel.accountsFacebook
     }
 
-    // Requests from Firestore
     val requestsMap = remember { mutableStateMapOf<String, Pair<String, Boolean>>() }
 
     val uid = FirebaseAuth.getInstance().currentUser?.uid
     val db = FirebaseFirestore.getInstance()
 
-    // Real-time listener for requests
     DisposableEffect(uid, an) {
         var listener: ListenerRegistration? = null
 
@@ -64,7 +61,6 @@ fun SocialMedia(
                 .whereEqualTo("isAccepted", false)
                 .addSnapshotListener { snap, _ ->
                     requestsMap.clear()
-
                     snap?.documents?.forEach { d ->
                         val rLink = d.getString("accountLink") ?: ""
                         val isAccepted = d.getBoolean("isAccepted") ?: false
@@ -75,24 +71,34 @@ fun SocialMedia(
 
         onDispose { listener?.remove() }
     }
-    Scaffold (topBar = { TopAppBarPromotionia(modifier,"Your ${an} accounts",navController) }){ it->
+
+    Scaffold(
+        topBar = { TopAppBarPromotionia(modifier, "Your $an accounts", navController) }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(padding)
                 .verticalScroll(scroll)
                 .padding(16.dp)
         ) {
-            Text("Manage your $an accounts", fontSize = 20.sp, color = Color.Gray)
+
+            Text(
+                "Manage your $an accounts",
+                fontSize = 20.sp,
+                color = colors.onBackground
+            )
+
             Spacer(Modifier.height(20.dp))
 
-            //----------------------------------------------------
-            // ADD NEW REQUEST
-            //----------------------------------------------------
-            Card(colors = CardDefaults.cardColors(Color(0xFFF8F9FB))) {
+            // ADD ACCOUNT CARD
+            Card(
+                colors = CardDefaults.cardColors(colors.surface),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Column(Modifier.padding(16.dp)) {
 
-                    Text("➕ Add New Account", fontSize = 18.sp)
+                    Text("➕ Add New Account", fontSize = 18.sp, color = colors.onSurface)
                     Spacer(Modifier.height(12.dp))
 
                     OutlinedTextField(
@@ -125,7 +131,7 @@ fun SocialMedia(
                             val normalizedPlatform = when (an.lowercase()) {
                                 "facebook" -> "Facebook"
                                 "instagram" -> "Instagram"
-                                "x", "x (twitter)", "twitter" -> "X"
+                                "x", "twitter", "x (twitter)" -> "X"
                                 else -> an
                             }
 
@@ -154,26 +160,23 @@ fun SocialMedia(
                                 }
                         },
                         enabled = !isAdding,
-                        colors = ButtonDefaults.buttonColors(Color.Black)
+                        colors = ButtonDefaults.buttonColors(colors.primary)
                     ) {
-                        Text(if (isAdding) "Sending…" else "Send Request")
+                        Text(
+                            if (isAdding) "Sending…" else "Send Request",
+                            color = colors.onPrimary
+                        )
                     }
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            //----------------------------------------------------
-            // ACCOUNT LIST SECTION
-            //----------------------------------------------------
-            Text("Accounts", fontSize = 18.sp)
+            Text("Accounts", fontSize = 18.sp, color = colors.onBackground)
             Spacer(Modifier.height(12.dp))
 
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
-                //------------------------------------------------
-                // APPROVED LIST (from user document)
-                //------------------------------------------------
                 approvedAccounts.forEach { raw ->
                     val (name, lnk) = safeSplit(raw)
 
@@ -188,9 +191,6 @@ fun SocialMedia(
                     )
                 }
 
-                //------------------------------------------------
-                // PENDING / APPROVED REQUESTS (from Firestore)
-                //------------------------------------------------
                 requestsMap.forEach { (rLink, pair) ->
                     val (reqId, accepted) = pair
 
@@ -202,9 +202,7 @@ fun SocialMedia(
                         navController = navController,
                         onRemove = {},
                         onCancelRequest = {
-                            if (!accepted) {
-                                db.collection("requests").document(reqId).delete()
-                            }
+                            if (!accepted) db.collection("requests").document(reqId).delete()
                         }
                     )
                 }
@@ -213,9 +211,8 @@ fun SocialMedia(
             Spacer(Modifier.height(50.dp))
         }
     }
-
-
 }
+
 fun safeSplit(raw: String): Pair<String, String> {
     val parts = raw.split("|")
     val name = parts.getOrNull(0)?.trim().orEmpty()
@@ -233,39 +230,43 @@ fun AccountItem(
     onRemove: () -> Unit,
     onCancelRequest: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     val clickable = isAccepted && link.isNotEmpty()
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .alpha(if (isAccepted) 1f else 0.5f)
-            .then(if (clickable) Modifier.clickable {
-                navController.navigate("tasks/$platform/${Uri.encode(link)}")
-            } else Modifier),
-        colors = CardDefaults.cardColors(Color.White)
+            .then(
+                if (clickable) Modifier.clickable {
+                    navController.navigate("tasks/$platform/${Uri.encode(link)}")
+                } else Modifier
+            ),
+        colors = CardDefaults.cardColors(colors.surface)
     ) {
+
         Row(
             Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Column(Modifier.weight(1f)) {
-
                 if (name.isNotEmpty())
-                    Text(name, fontSize = 16.sp)
+                    Text(name, fontSize = 16.sp, color = colors.onSurface)
 
-                Text(link, color = Color.Gray, fontSize = 14.sp)
+                Text(link, color = colors.onSurfaceVariant, fontSize = 14.sp)
 
                 if (!isAccepted)
-                    Text("Pending approval", color = Color.Red, fontSize = 12.sp)
+                    Text("Pending approval", color = colors.error, fontSize = 12.sp)
             }
 
             if (isAccepted) {
                 IconButton(onClick = onRemove) {
-                    Icon(Icons.Default.Delete, null)
+                    Icon(Icons.Default.Delete, null, tint = colors.error)
                 }
             } else {
                 TextButton(onClick = onCancelRequest) {
-                    Text("Cancel", color = Color.Red)
+                    Text("Cancel", color = colors.error)
                 }
             }
         }

@@ -7,8 +7,10 @@ import am.com.amanmeena.promotionia.AdminPanel.AdminUsersScreen
 import am.com.amanmeena.promotionia.AdminPanel.EditTaskScreen
 import am.com.amanmeena.promotionia.AdminPanel.SocialMediaApprovalScreen
 import am.com.amanmeena.promotionia.AdminPanel.UserProfile
+import am.com.amanmeena.promotionia.AdminPanel.util.RewardHistoryScreen
 import am.com.amanmeena.promotionia.Data.Values.ADMIN_UID
 import am.com.amanmeena.promotionia.Screens.*
+import am.com.amanmeena.promotionia.SocialMediaSections.GoogleMapReviewTask
 import am.com.amanmeena.promotionia.Viewmodels.AdminViewModel
 import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import androidx.compose.material3.AlertDialog
@@ -192,6 +194,25 @@ fun AppNavGraph(
                 navController = navController,
                 viewModel = viewModel
             )
+        }
+        composable("reward_history/{uid}") { backStack ->
+            val uid = backStack.arguments?.getString("uid") ?: ""
+            RewardHistoryScreen(uid)
+        }
+        composable("google_review_tasks") {
+            GoogleMapReviewTask(navController, viewModel)
+        }
+        composable("about_app") {
+            AboutApp(modifier,navController)
+        }
+        composable("user_reward_history") {
+            UserRewardScreen(modifier)
+        }
+        composable("user_transaction_history") {
+            UserTransactionScreen(modifier)
+        }
+        composable ("user_account_history"){
+            UserAccountRequestHistory(modifier,navController)
         }
     }
 }

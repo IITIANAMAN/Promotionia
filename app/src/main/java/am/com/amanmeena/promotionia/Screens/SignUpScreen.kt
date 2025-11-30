@@ -3,6 +3,7 @@ package am.com.amanmeena.promotionia.Screens
 import am.com.amanmeena.promotionia.AuthClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,13 +28,15 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun SignUpScreen(
     modifier: Modifier = Modifier,
     navController: NavController
 ) {
     val auth = remember { AuthClient() }
     val scope = rememberCoroutineScope()
+
+    val colors = MaterialTheme.colorScheme
+    val isDark = isSystemInDarkTheme()
 
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -61,6 +64,7 @@ fun SignUpScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .background(if (isDark) Color(0xFF0E0E0E) else colors.background)
             .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.Center
     ) {
@@ -70,49 +74,68 @@ fun SignUpScreen(
                 .fillMaxWidth(0.9f)
                 .wrapContentHeight(),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(
+                if (isDark) Color(0xFF1A1A1A) else colors.surface
+            )
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
+                // TITLE
                 Text(
                     "Create Account",
                     fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = colors.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // FULL NAME
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Full Name") },
                     leadingIcon = { Icon(Icons.Default.Person, null) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colors.primary,
+                        focusedLabelColor = colors.primary
+                    )
                 )
                 Spacer(Modifier.height(12.dp))
 
+                // EMAIL
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
                     leadingIcon = { Icon(Icons.Default.Email, null) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colors.primary,
+                        focusedLabelColor = colors.primary
+                    )
                 )
                 Spacer(Modifier.height(12.dp))
 
+                // PHONE
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
                     label = { Text("Phone Number") },
                     leadingIcon = { Icon(Icons.Default.Phone, null) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colors.primary,
+                        focusedLabelColor = colors.primary
+                    )
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // State Dropdown
+                // STATE DROPDOWN
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = { expanded = !expanded }
@@ -124,8 +147,13 @@ fun SignUpScreen(
                         label = { Text("Select State") },
                         leadingIcon = { Icon(Icons.Default.LocationOn, null) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colors.primary,
+                            focusedLabelColor = colors.primary
+                        )
                     )
+
                     ExposedDropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
@@ -144,7 +172,7 @@ fun SignUpScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                // Password
+                // PASSWORD
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -155,15 +183,19 @@ fun SignUpScreen(
                     trailingIcon = {
                         Text(
                             if (passwordVisible) "Hide" else "Show",
+                            color = colors.primary,
                             modifier = Modifier.clickable { passwordVisible = !passwordVisible }
                         )
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colors.primary,
+                        focusedLabelColor = colors.primary
+                    )
                 )
-
                 Spacer(Modifier.height(12.dp))
 
-                // Confirm Password
+                // CONFIRM PASSWORD
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
@@ -174,20 +206,25 @@ fun SignUpScreen(
                     trailingIcon = {
                         Text(
                             if (confirmPasswordVisible) "Hide" else "Show",
+                            color = colors.primary,
                             modifier = Modifier.clickable { confirmPasswordVisible = !confirmPasswordVisible }
                         )
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colors.primary,
+                        focusedLabelColor = colors.primary
+                    )
                 )
 
                 Spacer(Modifier.height(16.dp))
 
                 if (errorMessage.isNotEmpty()) {
-                    Text(errorMessage, color = Color.Red, fontSize = 14.sp)
+                    Text(errorMessage, color = colors.error, fontSize = 14.sp)
                     Spacer(Modifier.height(8.dp))
                 }
 
-                // Create Account Button
+                // CREATE ACCOUNT BUTTON
                 Button(
                     onClick = {
                         if (name.isBlank() || email.isBlank() || phone.isBlank() ||
@@ -219,10 +256,16 @@ fun SignUpScreen(
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     enabled = !isLoading,
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(Color.Black)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colors.primary,
+                        contentColor = colors.onPrimary
+                    )
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
+                        CircularProgressIndicator(
+                            color = colors.onPrimary,
+                            strokeWidth = 2.dp
+                        )
                     } else {
                         Text("Create Account", fontSize = 18.sp)
                     }
@@ -232,7 +275,7 @@ fun SignUpScreen(
 
                 Text(
                     "Already have an account? Login",
-                    color = Color(0xFF007AFF),
+                    color = colors.primary,
                     modifier = Modifier.clickable {
                         navController.navigate("login") {
                             popUpTo("signup") { inclusive = true }

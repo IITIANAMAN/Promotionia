@@ -11,6 +11,7 @@ data class PersonData(
     val totalCoinFb: Int = 0,
     val totalCoinInsta: Int = 0,
     val totalCoinX: Int = 0,
+    val totalCoinMap: Int =0,
     val createdAt: Long = System.currentTimeMillis(),
     val completedTasks: Map<String, Map<String, List<String>>> = emptyMap()
 )

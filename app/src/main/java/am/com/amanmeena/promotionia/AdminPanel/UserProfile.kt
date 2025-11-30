@@ -1,14 +1,17 @@
 package am.com.amanmeena.promotionia.AdminPanel
 
 import PersonData
+import TopAppBarPromotionia
+
 import am.com.amanmeena.promotionia.R
-import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -79,7 +82,30 @@ fun UserProfile(
                     navController = navController
                 )
             }
+            item {
+                RewardHistoryButton(
+                    uid = user.uid,
+                    navController = navController
+                )
+            }
         }
+    }
+}
+
+@Composable
+
+fun RewardHistoryButton(uid: String, navController: NavController) {
+    Button(
+        onClick = {
+            navController . navigate ("reward_history/$uid")
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
+    ) {
+        Text("View Reward History", color = Color.White)
     }
 }
 

@@ -1,5 +1,6 @@
 package com.amanmeena.promotionia.Screens
 
+
 import am.com.amanmeena.promotionia.Viewmodels.MainViewModel
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -28,10 +29,11 @@ fun ManageAccountsSection(navController: NavController, viewModel: MainViewModel
             SocialCard("Facebook", navController, false)
             SocialCard("Instagram", navController, false)
             SocialCard("X", navController, false)
-
+            SocialCard("Map",navController,false)
             // Coming Soon platforms
             SocialCard("Youtube", navController, true)
             SocialCard("Linkedin", navController, true)
+
         }
     }
 }

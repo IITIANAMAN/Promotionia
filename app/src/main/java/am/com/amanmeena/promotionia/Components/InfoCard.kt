@@ -21,8 +21,10 @@ fun InfoCard(
     value: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    icon: @Composable (() -> Unit)? = null // optional icon slot for flexibility
+    icon: @Composable (() -> Unit)? = null
 ) {
+    val colors = MaterialTheme.colorScheme
+
     Card(
         modifier = modifier
             .width(120.dp)
@@ -30,37 +32,43 @@ fun InfoCard(
             .shadow(3.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(
+            containerColor = colors.surface       // THEMED CARD BG
+        )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color(0xFFFDFDFD), Color(0xFFF7F8FB))
+                        colors = listOf(
+                            colors.surface,                     // TOP GRADIENT
+                            colors.surfaceVariant               // bottom gradient (dynamic)
+                        )
                     )
                 )
                 .padding(12.dp)
         ) {
+
             Column(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
 
-                // Icon Row (optional)
+                // Optional icon box
                 if (icon != null) {
                     Box(
                         modifier = Modifier
                             .size(26.dp)
                             .background(
-                                Color(0xFFFFF4D1),
+                                colors.secondaryContainer,          // themed background
                                 shape = RoundedCornerShape(8.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         icon()
                     }
+
                     Spacer(modifier = Modifier.height(4.dp))
                 }
 
@@ -69,16 +77,16 @@ fun InfoCard(
                     text = title,
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontSize = 13.sp,
-                        color = Color(0xFF757575)
+                        color = colors.onSurfaceVariant          // THEMED
                     )
                 )
 
-                // Value (Main Focus)
+                // Value
                 Text(
                     text = value,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 22.sp,
-                        color = Color(0xFF212121)
+                        color = colors.primary                    // THEMED
                     )
                 )
 
@@ -87,7 +95,7 @@ fun InfoCard(
                     text = subtitle,
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontSize = 12.sp,
-                        color = Color(0xFF9E9E9E)
+                        color = colors.onSurfaceVariant           // THEMED
                     )
                 )
             }

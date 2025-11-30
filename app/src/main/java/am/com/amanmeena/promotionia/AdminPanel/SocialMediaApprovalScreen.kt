@@ -1,7 +1,8 @@
 package am.com.amanmeena.promotionia.AdminPanel
 
+import TopAppBarPromotionia
 import am.com.amanmeena.promotionia.Data.SocialRequest
-import am.com.amanmeena.promotionia.utils.TopAppBarPromotionia
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.*

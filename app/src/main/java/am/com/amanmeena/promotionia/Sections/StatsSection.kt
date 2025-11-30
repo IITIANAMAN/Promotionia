@@ -12,27 +12,31 @@ import androidx.compose.ui.unit.dp
 import com.amanmeena.promotionia.ui.components.InfoCard
 
 @Composable
+
 fun StatsSection(user: Map<String, Any>?) {
+
     val totalCoin = user?.get("totalCoin") as? Long ?: 0L
     val completedTasks = user?.get("completedTasks") as? Map<*, *> ?: emptyMap<Any, Any>()
 
-    // Count all tasks done across all platforms and all accounts
+    // Count tasks across all platforms
     val totalTasksCompleted = completedTasks.values.sumOf { platformData ->
         val platformMap = platformData as? Map<*, *> ?: emptyMap<Any, Any>()
         platformMap.values.sumOf { taskList ->
             (taskList as? List<*>)?.size ?: 0
         }
     }
+
     val statsList = listOf(
-        Triple("Tasks Completed", "${totalTasksCompleted}", "Completed successfully"),
-        Triple("Coins",totalCoin.toString(),"Total coins")
+        Triple("Tasks Completed", "$totalTasksCompleted", "Completed successfully"),
+        Triple("Coins", totalCoin.toString(), "Total coins")
     )
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Section Title
+
         Text(
             text = "Your Stats",
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,   // FIXED
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
@@ -45,7 +49,11 @@ fun StatsSection(user: Map<String, Any>?) {
                 .heightIn(max = 400.dp)
         ) {
             items(statsList) { (title, value, subtitle) ->
-                InfoCard(title = title, value = value, subtitle = subtitle)
+                InfoCard(
+                    title = title,
+                    value = value,
+                    subtitle = subtitle
+                )
             }
         }
     }
